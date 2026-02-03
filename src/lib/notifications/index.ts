@@ -94,13 +94,15 @@ export async function notifyEventInvite(params: {
   const { userId, email, phone, eventName, hostName, startTime, nightId, baseUrl } = params;
   const link = `${baseUrl}/nights/${nightId}`;
   const text = `You're invited to ${eventName} by ${hostName} on ${startTime.toLocaleString()}. ${link}`;
-  await sendEmail(
-    email,
-    `Invitation: ${eventName}`,
-    `<p>You're invited to <strong>${eventName}</strong> by ${hostName}.</p><p>When: ${startTime.toLocaleString()}</p><p><a href="${link}">View event and respond</a></p>`,
-    "event_invite",
-    userId
-  );
+  if (email) {
+    await sendEmail(
+      email,
+      `Invitation: ${eventName}`,
+      `<p>You're invited to <strong>${eventName}</strong> by ${hostName}.</p><p>When: ${startTime.toLocaleString()}</p><p><a href="${link}">View event and respond</a></p>`,
+      "event_invite",
+      userId
+    );
+  }
   if (phone) {
     await sendSms(phone, text.slice(0, 160), "event_invite", userId);
   }
@@ -114,22 +116,24 @@ export async function notifyClubUpdate(params: {
   message: string;
   link: string;
 }) {
-  const { userId, email, phone, message, link } = params;
-  await sendEmail(
-    email,
-    `Club update: ${params.clubName}`,
-    `<p>${message}</p><p><a href="${link}">View club</a></p>`,
-    "club",
-    userId
-  );
+  const { userId, email, phone, message, link, clubName } = params;
+  if (email) {
+    await sendEmail(
+      email,
+      `Club update: ${clubName}`,
+      `<p>${message}</p><p><a href="${link}">View club</a></p>`,
+      "club",
+      userId
+    );
+  }
   if (phone) {
-    await sendSms(phone, `${params.clubName}: ${message.slice(0, 100)} ${link}`, "club", userId);
+    await sendSms(phone, `${clubName}: ${message.slice(0, 100)} ${link}`, "club", userId);
   }
 }
 
 export async function notifyAccountWelcome(params: { userId: string; email: string; name: string | null }) {
   await sendEmail(
-    params.userId,
+    params.email,
     "Welcome to Whiskey Night",
     `<p>Hi ${params.name ?? "there"},</p><p>Welcome to Whiskey Night. Start by creating or joining a club and scheduling your first tasting.</p>`,
     "account",

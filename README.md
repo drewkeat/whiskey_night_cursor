@@ -16,9 +16,36 @@ Plan and schedule Whiskey Night events with your club. Built with Next.js, Postg
 ## Requirements
 
 - Node.js >= 20.9.0
-- PostgreSQL
+- Docker and Docker Compose (for Postgres), or a local PostgreSQL instance
 
-## Setup
+## Quick start (Docker Postgres)
+
+1. **Start Postgres:**
+
+   ```bash
+   docker compose up -d
+   ```
+
+2. **Install deps, env, and migrate:**
+
+   ```bash
+   npm install
+   cp .env.example .env
+   # Set NEXTAUTH_SECRET: e.g. run: openssl rand -base64 32
+   npx prisma migrate deploy
+   ```
+
+3. **Run the app:**
+
+   ```bash
+   npm run dev
+   ```
+
+   Open [http://localhost:3000](http://localhost:3000).
+
+The default `.env.example` `DATABASE_URL` matches the Docker Compose Postgres (user `whiskey`, password `whiskey`, database `whiskey_night`). Stop the database with `docker compose down`; add `-v` to remove the data volume.
+
+## Setup (without Docker)
 
 1. Clone and install:
 
@@ -27,7 +54,7 @@ Plan and schedule Whiskey Night events with your club. Built with Next.js, Postg
    npm install
    ```
 
-2. Copy env and set `DATABASE_URL` and `NEXTAUTH_SECRET`:
+2. Copy env and set `DATABASE_URL` (and optionally `NEXTAUTH_SECRET`):
 
    ```bash
    cp .env.example .env
@@ -73,5 +100,7 @@ The app includes a web manifest and service worker. Replace `public/icons/icon-1
 - `npm run dev` – development server
 - `npm run build` – production build
 - `npm run start` – run production server
+- `npm run db:up` – start Postgres (Docker)
+- `npm run db:down` – stop Postgres (Docker)
+- `npm run db:migrate` – apply migrations (`npx prisma migrate deploy`)
 - `npx prisma migrate dev` – create and apply migrations (dev)
-- `npx prisma migrate deploy` – apply migrations (production)

@@ -10,7 +10,8 @@ const withPWA = withPWAInit({
 });
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Allow dev server access from network IP (e.g. 10.0.0.10)
+  allowedDevOrigins: ["http://10.0.0.10:3000", "http://localhost:3000"],
 };
 
 export default withPWA(nextConfig);

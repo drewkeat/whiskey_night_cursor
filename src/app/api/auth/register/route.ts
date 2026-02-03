@@ -33,7 +33,7 @@ export async function POST(request: Request) {
       data: {
         email,
         name,
-        passwordHash,
+        passwordHash: await bcrypt.hash(password, 12),
       },
     });
 
