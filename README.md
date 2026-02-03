@@ -20,30 +20,33 @@ Plan and schedule Whiskey Night events with your club. Built with Next.js, Postg
 
 ## Quick start (Docker Postgres)
 
-1. **Start Postgres:**
-
-   ```bash
-   docker compose up -d
-   ```
-
-2. **Install deps, env, and migrate:**
+1. **Install and env:**
 
    ```bash
    npm install
    cp .env.example .env
-   # Set NEXTAUTH_SECRET: e.g. run: openssl rand -base64 32
-   npx prisma migrate deploy
+   # Set NEXTAUTH_SECRET: e.g. openssl rand -base64 32
    ```
 
-3. **Run the app:**
+2. **One command to run everything (DB + migrate + seed + app):**
 
    ```bash
    npm run dev
    ```
 
-   Open [http://localhost:3000](http://localhost:3000).
+   This starts Postgres, runs migrations, seeds test data, and starts the Next.js dev server. Open [http://localhost:3000](http://localhost:3000).
 
-The default `.env.example` `DATABASE_URL` matches the Docker Compose Postgres (user `whiskey`, password `whiskey`, database `whiskey_night`). Stop the database with `docker compose down`; add `-v` to remove the data volume.
+### Test users (after seed)
+
+| Email              | Password   |
+|--------------------|------------|
+| alice@example.com  | password123 |
+| bob@example.com   | password123 |
+| carol@example.com | password123 |
+
+Seed creates: one club (“Weekend Whiskey Club”) with all three as members, three whiskeys, one upcoming “Islay Night” event, and two library entries. Use these to log in and test without creating new users each time.
+
+The default `.env.example` `DATABASE_URL` matches Docker Compose (user `whiskey`, password `whiskey`, database `whiskey_night`). Stop the database with `docker compose down`; add `-v` to remove the data volume.
 
 ## Setup (without Docker)
 
@@ -70,9 +73,7 @@ The default `.env.example` `DATABASE_URL` matches the Docker Compose Postgres (u
 
 4. (Optional) Configure email (Resend) and SMS (Twilio) in `.env` for notifications.
 
-5. (Optional) Set `SEARCH_API_KEY` (Brave Search API) for “add whiskey from web search”.
-
-6. Start dev server:
+5. Start dev server:
 
    ```bash
    npm run dev
@@ -97,10 +98,13 @@ The app includes a web manifest and service worker. Replace `public/icons/icon-1
 
 ## Scripts
 
-- `npm run dev` – development server
+- `npm run dev` – start Postgres, migrate, seed, then run Next.js dev server (one command for local testing)
+- `npm run dev:no-seed` – same as `dev` but skip seeding (use when DB already has data)
 - `npm run build` – production build
-- `npm run start` – run production server
+- `npm run start` – start Postgres, migrate, then run production server
 - `npm run db:up` – start Postgres (Docker)
 - `npm run db:down` – stop Postgres (Docker)
-- `npm run db:migrate` – apply migrations (`npx prisma migrate deploy`)
-- `npx prisma migrate dev` – create and apply migrations (dev)
+- `npm run db:migrate` – apply migrations
+- `npm run db:seed` – run seed only (test users + sample data)
+- `npm run db:reset` – recreate DB from scratch (migrate reset + seed). Use for a clean slate.
+- `npx prisma migrate dev` – create and apply new migrations (dev)
