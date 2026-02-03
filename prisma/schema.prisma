@@ -1,0 +1,221 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- NextAuth required models ----------
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ---------- User and profile ----------
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  phone         String?   // E.164 for SMS
+  passwordHash  String?   // for credentials provider
+  createdAt     DateTime  @default(now())
+
+  accounts      Account[]
+  sessions      Session[]
+  clubMembers   ClubMember[]
+  createdClubs  Club[]
+  hostedNights  WhiskeyNight[]           @relation("Host")
+  attendances   WhiskeyNightAttendee[]
+  reviews       Review[]
+  whiskeyLibrary UserWhiskeyLibrary[]
+  notificationPreferences UserNotificationPreference[]
+  notificationLogs NotificationLog[]
+}
+
+// ---------- Notification preferences and log ----------
+model UserNotificationPreference {
+  id        String   @id @default(cuid())
+  userId    String
+  channel   String   // "email" | "sms"
+  category  String   // "event_invite" | "club" | "account"
+  enabled   Boolean  @default(true)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, channel, category])
+}
+
+model NotificationLog {
+  id               String   @id @default(cuid())
+  userId           String
+  channel          String
+  category         String
+  subjectOrSnippet String?  @db.Text
+  sentAt           DateTime @default(now())
+  success          Boolean
+  providerId       String?  // for idempotency
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ---------- Clubs ----------
+model Club {
+  id          String   @id @default(cuid())
+  name        String
+  description String?  @db.Text
+  createdById String
+  createdAt   DateTime @default(now())
+
+  creator User   @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  members ClubMember[]
+  nights  WhiskeyNight[]
+}
+
+model ClubMember {
+  id        String   @id @default(cuid())
+  userId    String
+  clubId    String
+  role      String   @default("member") // "admin" | "member"
+  joinedAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  club Club @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, clubId])
+}
+
+// ---------- Whiskey ----------
+model Whiskey {
+  id          String   @id @default(cuid())
+  name        String
+  distillery  String?
+  type        String?  // bourbon, scotch, etc.
+  region      String?
+  abv         Float?
+  imageUrl    String?  @db.Text
+  source      String?  @default("manual") // "manual" | "web_search"
+  externalId  String?  // for dedup
+  createdAt   DateTime @default(now())
+
+  nights   WhiskeyNight[]
+  reviews  Review[]
+  inLibraries UserWhiskeyLibrary[]
+}
+
+// ---------- Whiskey Night (event) ----------
+model WhiskeyNight {
+  id        String   @id @default(cuid())
+  clubId    String
+  hostId    String
+  whiskeyId String
+  title     String?
+  notes     String?  @db.Text
+  startTime DateTime
+  endTime   DateTime
+  createdAt DateTime @default(now())
+
+  club     Club                   @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  host     User                   @relation("Host", fields: [hostId], references: [id], onDelete: Cascade)
+  whiskey  Whiskey                 @relation(fields: [whiskeyId], references: [id], onDelete: Restrict)
+  attendees WhiskeyNightAttendee[]
+}
+
+model WhiskeyNightAttendee {
+  id            String   @id @default(cuid())
+  whiskeyNightId String
+  userId        String
+  status        String   @default("invited") // "invited" | "accepted" | "declined"
+
+  whiskeyNight WhiskeyNight @relation(fields: [whiskeyNightId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([whiskeyNightId, userId])
+}
+
+// ---------- Reviews ----------
+model Review {
+  id              String   @id @default(cuid())
+  userId          String
+  whiskeyId       String
+  reviewableType String   // "event" | "personal"
+  reviewableId   String   // WhiskeyNight.id or UserWhiskeyLibrary.id
+  openEndedNotes String?  @db.Text
+  createdAt       DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  whiskey Whiskey @relation(fields: [whiskeyId], references: [id], onDelete: Cascade)
+  flavorAxes ReviewFlavorAxis[]
+  traits   ReviewTrait[]
+}
+
+model ReviewFlavorAxis {
+  id       String @id @default(cuid())
+  reviewId String
+  axisKey  String // e.g. sweet_dry, smoky_smooth
+  value    Int    // 1-5 or 1-10
+
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@unique([reviewId, axisKey])
+}
+
+model ReviewTrait {
+  id       String @id @default(cuid())
+  reviewId String
+  traitKey String // e.g. vanilla, peat, citrus
+
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@unique([reviewId, traitKey])
+}
+
+// ---------- User whiskey library ----------
+model UserWhiskeyLibrary {
+  id        String   @id @default(cuid())
+  userId    String
+  whiskeyId String
+  addedAt   DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  whiskey Whiskey @relation(fields: [whiskeyId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, whiskeyId])
+}

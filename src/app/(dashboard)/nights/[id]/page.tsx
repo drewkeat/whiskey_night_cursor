@@ -1,0 +1,140 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { EventRespondButton } from "@/components/nights/EventRespondButton";
+import { ReviewFormSection } from "@/components/reviews/ReviewFormSection";
+
+export default async function NightDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return null;
+
+  const { id } = await params;
+  const night = await prisma.whiskeyNight.findUnique({
+    where: { id },
+    include: {
+      club: true,
+      host: { select: { id: true, name: true, email: true } },
+      whiskey: true,
+      attendees: { include: { user: { select: { id: true, name: true, email: true } } } },
+    },
+  });
+
+  if (!night) notFound();
+
+  const myAttendance = night.attendees.find((a) => a.userId === session.user.id);
+  if (!myAttendance) {
+    return (
+      <div>
+        <p className="text-stone-600">You are not invited to this event.</p>
+        <Link href="/nights" className="mt-4 inline-block text-amber-700 hover:underline">
+          Back to your events
+        </Link>
+      </div>
+    );
+  }
+
+  const accepted = night.attendees.filter((a) => a.status === "accepted");
+  const canReview =
+    myAttendance.status === "accepted" &&
+    night.whiskeyId &&
+    (() => {
+      const start = night.startTime;
+      const end = night.endTime;
+      const now = new Date();
+      return now >= start && now <= end;
+    })();
+
+  const existingReview = await prisma.review.findFirst({
+    where: {
+      userId: session.user.id,
+      whiskeyId: night.whiskeyId,
+      reviewableType: "event",
+      reviewableId: night.id,
+    },
+  });
+
+  return (
+    <div>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold text-amber-950">
+            {night.title ?? `${night.whiskey.name} at ${night.club.name}`}
+          </h1>
+          <p className="mt-1 text-stone-600">
+            <Link href={`/clubs/${night.club.id}`} className="text-amber-700 hover:underline">
+              {night.club.name}
+            </Link>
+          </p>
+          <div className="mt-2 flex flex-wrap gap-3 text-sm text-stone-500">
+            <span>{night.startTime.toLocaleString()} – {night.endTime.toLocaleTimeString()}</span>
+            <span>Host: {night.host.name ?? night.host.email}</span>
+          </div>
+        </div>
+        <EventRespondButton
+          nightId={night.id}
+          currentStatus={myAttendance.status}
+        />
+      </div>
+
+      <section className="mt-6 rounded-xl border border-amber-200/60 bg-white p-4">
+        <h2 className="font-medium text-amber-950">Whiskey</h2>
+        <Link
+          href={`/whiskeys/${night.whiskey.id}`}
+          className="mt-1 block text-amber-700 hover:underline"
+        >
+          {night.whiskey.name}
+          {night.whiskey.distillery && ` · ${night.whiskey.distillery}`}
+        </Link>
+      </section>
+
+      {night.notes && (
+        <section className="mt-4">
+          <h2 className="font-medium text-amber-950">Notes</h2>
+          <p className="mt-1 text-stone-600">{night.notes}</p>
+        </section>
+      )}
+
+      <section className="mt-6">
+        <h2 className="font-medium text-amber-950">Attendees</h2>
+        <ul className="mt-2 space-y-1">
+          {night.attendees.map((a) => (
+            <li key={a.id} className="flex items-center justify-between text-sm">
+              <span>{a.user.name ?? a.user.email}</span>
+              <span
+                className={
+                  a.status === "accepted"
+                    ? "text-green-600"
+                    : a.status === "declined"
+                    ? "text-red-600"
+                    : "text-stone-500"
+                }
+              >
+                {a.status}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {canReview && !existingReview && (
+        <ReviewFormSection
+          whiskeyId={night.whiskeyId}
+          reviewableType="event"
+          reviewableId={night.id}
+          whiskeyName={night.whiskey.name}
+        />
+      )}
+      {existingReview && (
+        <section className="mt-6">
+          <p className="text-sm text-stone-600">You’ve already submitted a review for this event.</p>
+        </section>
+      )}
+    </div>
+  );
+}
