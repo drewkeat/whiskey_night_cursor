@@ -7,12 +7,13 @@ export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return null;
 
-  const [clubsCount, nightsCount, libraryCount] = await Promise.all([
+  const [clubsCount, nightsCount, libraryCount, pendingInvitesCount] = await Promise.all([
     prisma.clubMember.count({ where: { userId: session.user.id } }),
     prisma.whiskeyNightAttendee.count({
       where: { userId: session.user.id, status: "accepted" },
     }),
     prisma.userWhiskeyLibrary.count({ where: { userId: session.user.id } }),
+    prisma.clubInvite.count({ where: { inviteeId: session.user.id, status: "pending" } }),
   ]);
 
   return (
@@ -28,6 +29,16 @@ export default async function DashboardPage() {
           <p className="mt-1 text-2xl font-semibold text-amber-700">{clubsCount}</p>
           <p className="mt-1 text-sm text-stone-500">Your clubs</p>
         </Link>
+        {pendingInvitesCount > 0 && (
+          <Link
+            href="/clubs/invitations"
+            className="rounded-xl border-2 border-amber-400 bg-amber-50/50 p-6 shadow-sm hover:border-amber-500"
+          >
+            <h2 className="font-medium text-amber-950">Invitations</h2>
+            <p className="mt-1 text-2xl font-semibold text-amber-700">{pendingInvitesCount}</p>
+            <p className="mt-1 text-sm text-stone-500">Pending club invites</p>
+          </Link>
+        )}
         <Link
           href="/nights"
           className="rounded-xl border border-amber-200/60 bg-white p-6 shadow-sm hover:border-amber-300"

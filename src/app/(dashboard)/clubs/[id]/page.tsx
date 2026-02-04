@@ -20,6 +20,10 @@ export default async function ClubDetailPage({
       club: {
         include: {
           members: { include: { user: { select: { id: true, name: true, email: true, image: true } } } },
+          invitations: {
+            where: { status: "pending" },
+            include: { invitee: { select: { id: true, name: true, email: true } } },
+          },
           nights: {
             include: {
               whiskey: true,
@@ -70,6 +74,24 @@ export default async function ClubDetailPage({
           ))}
         </ul>
       </section>
+
+      {membership.role === "admin" && club.invitations.length > 0 && (
+        <section className="mt-8">
+          <h2 className="text-lg font-medium text-amber-950">Pending invitations</h2>
+          <p className="mt-1 text-sm text-stone-500">Waiting for these people to accept.</p>
+          <ul className="mt-3 space-y-2">
+            {club.invitations.map((inv) => (
+              <li
+                key={inv.id}
+                className="flex items-center rounded-lg border border-amber-200/60 bg-amber-50/30 px-4 py-2"
+              >
+                <span className="text-stone-700">{inv.invitee.name ?? inv.invitee.email}</span>
+                <span className="ml-2 text-sm text-stone-500">pending</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section className="mt-8">
         <div className="flex items-center justify-between">

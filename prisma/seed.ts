@@ -10,7 +10,7 @@ async function main() {
 
   const alice = await prisma.user.upsert({
     where: { email: "alice@example.com" },
-    update: {},
+    update: { passwordHash: hash, name: "Alice" },
     create: {
       email: "alice@example.com",
       name: "Alice",
@@ -20,7 +20,7 @@ async function main() {
 
   const bob = await prisma.user.upsert({
     where: { email: "bob@example.com" },
-    update: {},
+    update: { passwordHash: hash, name: "Bob" },
     create: {
       email: "bob@example.com",
       name: "Bob",
@@ -30,7 +30,7 @@ async function main() {
 
   const carol = await prisma.user.upsert({
     where: { email: "carol@example.com" },
-    update: {},
+    update: { passwordHash: hash, name: "Carol" },
     create: {
       email: "carol@example.com",
       name: "Carol",

@@ -31,14 +31,34 @@ export async function POST(
   }
   const user = await prisma.user.findUnique({ where: { email: parsed.data.email } });
   if (!user) {
-    return NextResponse.json({ error: { email: ["No user with this email."] } }, { status: 400 });
+    return NextResponse.json({ error: { email: ["No user with this email. They need to sign up first."] } }, { status: 400 });
   }
-  await prisma.clubMember.create({
-    data: {
+  if (user.id === session.user.id) {
+    return NextResponse.json({ error: { email: ["You can't invite yourself."] } }, { status: 400 });
+  }
+  const existingMember = await prisma.clubMember.findUnique({
+    where: { userId_clubId: { userId: user.id, clubId } },
+  });
+  if (existingMember) {
+    return NextResponse.json({ error: { email: ["This user is already a member."] } }, { status: 400 });
+  }
+  const existingInvite = await prisma.clubInvite.findUnique({
+    where: { clubId_inviteeId: { clubId, inviteeId: user.id } },
+  });
+  if (existingInvite?.status === "pending") {
+    return NextResponse.json({ error: { email: ["An invitation is already pending for this user."] } }, { status: 400 });
+  }
+  const role = parsed.data.role ?? "member";
+  await prisma.clubInvite.upsert({
+    where: { clubId_inviteeId: { clubId, inviteeId: user.id } },
+    create: {
       clubId,
-      userId: user.id,
-      role: parsed.data.role ?? "member",
+      inviterId: session.user.id,
+      inviteeId: user.id,
+      status: "pending",
+      role,
     },
+    update: { status: "pending", inviterId: session.user.id, role },
   });
   return NextResponse.json({ ok: true });
 }

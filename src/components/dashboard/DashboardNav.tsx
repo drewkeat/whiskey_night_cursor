@@ -7,6 +7,7 @@ import type { Session } from "next-auth";
 const navLinks = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/clubs", label: "Clubs" },
+  { href: "/clubs/invitations", label: "Invitations" },
   { href: "/nights", label: "Nights" },
   { href: "/whiskeys", label: "Whiskeys" },
   { href: "/library", label: "My Library" },

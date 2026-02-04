@@ -58,11 +58,13 @@ model User {
   passwordHash  String?   // for credentials provider
   createdAt     DateTime  @default(now())
 
-  accounts      Account[]
-  sessions      Session[]
-  clubMembers   ClubMember[]
-  createdClubs  Club[]
-  hostedNights  WhiskeyNight[]           @relation("Host")
+  accounts            Account[]
+  sessions            Session[]
+  clubMembers         ClubMember[]
+  createdClubs        Club[]
+  clubInvitesSent     ClubInvite[]     @relation("ClubInvitesSent")
+  clubInvitesReceived ClubInvite[]     @relation("ClubInvitesReceived")
+  hostedNights        WhiskeyNight[]           @relation("Host")
   attendances   WhiskeyNightAttendee[]
   reviews       Review[]
   whiskeyLibrary UserWhiskeyLibrary[]
@@ -104,9 +106,26 @@ model Club {
   createdById String
   createdAt   DateTime @default(now())
 
-  creator User   @relation(fields: [createdById], references: [id], onDelete: Cascade)
-  members ClubMember[]
-  nights  WhiskeyNight[]
+  creator     User         @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  members     ClubMember[]
+  invitations ClubInvite[]
+  nights      WhiskeyNight[]
+}
+
+model ClubInvite {
+  id        String   @id @default(cuid())
+  clubId    String
+  inviterId String
+  inviteeId String
+  role      String   @default("member") // "admin" | "member" - applied when accepted
+  status    String   @default("pending") // "pending" | "accepted" | "declined"
+  createdAt DateTime @default(now())
+
+  club   Club @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  inviter User @relation("ClubInvitesSent", fields: [inviterId], references: [id], onDelete: Cascade)
+  invitee User @relation("ClubInvitesReceived", fields: [inviteeId], references: [id], onDelete: Cascade)
+
+  @@unique([clubId, inviteeId])
 }
 
 model ClubMember {

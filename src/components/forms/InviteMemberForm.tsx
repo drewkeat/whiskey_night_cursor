@@ -8,10 +8,12 @@ export function InviteMemberForm({ clubId, className = "" }: { clubId: string; c
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    setSuccess("");
     const res = await fetch(`/api/clubs/${clubId}/members`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -22,7 +24,8 @@ export function InviteMemberForm({ clubId, className = "" }: { clubId: string; c
       setError(data.error?.email?.[0] ?? "Failed to invite");
       return;
     }
-    router.push(`/clubs/${clubId}`);
+    setSuccess(`Invitation sent to ${email}. They can accept from their Invitations page.`);
+    setEmail("");
     router.refresh();
   }
 
@@ -42,6 +45,7 @@ export function InviteMemberForm({ clubId, className = "" }: { clubId: string; c
         />
       </div>
       {error && <p className="text-sm text-red-600">{error}</p>}
+      {success && <p className="text-sm text-green-700">{success}</p>}
       <div className="flex gap-3">
         <button
           type="submit"
