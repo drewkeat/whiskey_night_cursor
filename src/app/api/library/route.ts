@@ -13,10 +13,9 @@ export async function GET() {
   }
   const items = await prisma.userWhiskeyLibrary.findMany({
     where: { userId: session.user.id },
-    include: {
-      whiskey: true,
-      whiskeyId: true,
-    },
+include: {
+        whiskey: true,
+      },
     orderBy: { addedAt: "desc" },
   });
   return NextResponse.json(items);

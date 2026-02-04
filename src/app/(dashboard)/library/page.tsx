@@ -12,7 +12,6 @@ export default async function LibraryPage() {
     where: { userId: session.user.id },
     include: {
       whiskey: true,
-      whiskeyId: true,
     },
     orderBy: { addedAt: "desc" },
   });

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { SessionProvider } from "@/components/providers/SessionProvider";
+import { SerwistProvider } from "./serwist";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -38,7 +39,9 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <SessionProvider>{children}</SessionProvider>
+        <SerwistProvider swUrl="/serwist/sw.js">
+          <SessionProvider>{children}</SessionProvider>
+        </SerwistProvider>
       </body>
     </html>
   );
