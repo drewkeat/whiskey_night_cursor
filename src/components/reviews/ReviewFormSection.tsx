@@ -4,6 +4,14 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { FLAVOR_AXES, REVIEW_TRAITS } from "@/lib/constants";
 
+function normalizeTraitKey(input: string): string {
+  return input
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "_")
+    .replace(/[^a-z0-9_]/g, "");
+}
+
 type Props = {
   whiskeyId: string;
   reviewableType: "event" | "personal";
@@ -18,11 +26,30 @@ export function ReviewFormSection({ whiskeyId, reviewableType, reviewableId, whi
     Object.fromEntries(FLAVOR_AXES.map((a) => [a.key, 3]))
   );
   const [traits, setTraits] = useState<string[]>([]);
+  const [customTraitInput, setCustomTraitInput] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  const predefinedSet = new Set(REVIEW_TRAITS);
+  const customTraits = traits.filter((t) => !predefinedSet.has(t as (typeof REVIEW_TRAITS)[number]));
+
   function toggleTrait(t: string) {
     setTraits((prev) => (prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]));
+  }
+
+  function addCustomTrait() {
+    const key = normalizeTraitKey(customTraitInput);
+    if (!key) return;
+    if (traits.includes(key)) {
+      setCustomTraitInput("");
+      return;
+    }
+    setTraits((prev) => [...prev, key]);
+    setCustomTraitInput("");
+  }
+
+  function removeCustomTrait(t: string) {
+    setTraits((prev) => prev.filter((x) => x !== t));
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -105,6 +132,44 @@ export function ReviewFormSection({ whiskeyId, reviewableType, reviewableId, whi
                 {t}
               </button>
             ))}
+            {customTraits.map((t) => (
+              <span
+                key={t}
+                className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-sm text-amber-900"
+              >
+                {t.replace(/_/g, " ")}
+                <button
+                  type="button"
+                  onClick={() => removeCustomTrait(t)}
+                  className="ml-0.5 rounded-full p-0.5 hover:bg-amber-200"
+                  aria-label={`Remove ${t}`}
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+          <div className="mt-2 flex gap-2">
+            <input
+              type="text"
+              value={customTraitInput}
+              onChange={(e) => setCustomTraitInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  addCustomTrait();
+                }
+              }}
+              placeholder="Add a tag (e.g. chocolate, leather)"
+              className="flex-1 rounded-lg border border-stone-300 px-3 py-2 text-sm text-stone-900 placeholder:text-stone-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+            />
+            <button
+              type="button"
+              onClick={addCustomTrait}
+              className="rounded-lg border border-stone-300 px-3 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
+            >
+              Add tag
+            </button>
           </div>
         </div>
         {error && <p className="text-sm text-red-600">{error}</p>}
