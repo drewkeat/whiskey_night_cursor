@@ -1,0 +1,26 @@
+# Dependencies and build output (reinstalled/built in image)
+node_modules
+.next
+out
+build
+
+# Git and IDE
+.git
+.gitignore
+.vscode
+*.md
+!README.md
+
+# Env (set at runtime; keep .env.example for reference if needed)
+.env
+.env.*
+!.env.example
+
+# Debug and misc
+*.log
+.DS_Store
+coverage
+.vercel
+*.tsbuildinfo
+next-env.d.ts
+

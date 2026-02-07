@@ -48,6 +48,43 @@ Seed creates: one club (“Weekend Whiskey Club”) with all three as members, t
 
 The default `.env.example` `DATABASE_URL` matches Docker Compose (user `whiskey`, password `whiskey`, database `whiskey_night`). Stop the database with `docker compose down`; add `-v` to remove the data volume.
 
+## Deploy with Docker (production)
+
+Run the full stack (Postgres + Next.js app) on a server with Docker Compose.
+
+1. **On the server**, clone the repo and create a `.env` file (or export variables):
+
+   ```bash
+   cp .env.example .env
+   # Required: set for your domain
+   NEXTAUTH_URL=https://your-domain.com
+   NEXTAUTH_SECRET=$(openssl rand -base64 32)
+   # Optional: Resend, Twilio, Google OAuth, CRON_SECRET
+   ```
+
+2. **Build and start:**
+
+   ```bash
+   docker compose up -d --build
+   ```
+
+   The app will be at `http://localhost:3000` (or map port 3000 to your reverse proxy). The app container runs `prisma migrate deploy` on startup, then starts the Next.js server. Postgres data is stored in a Docker volume.
+
+3. **Optional: seed test data** (only if the DB is empty and you want sample users/clubs):
+
+   ```bash
+   docker compose exec app npx prisma db seed
+   ```
+
+4. **Logs and stop:**
+
+   ```bash
+   docker compose logs -f app
+   docker compose down
+   ```
+
+   Use a reverse proxy (e.g. Nginx, Caddy) and TLS in front of port 3000; set `NEXTAUTH_URL` to your public URL.
+
 ## Setup (without Docker)
 
 1. Clone and install:
