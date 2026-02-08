@@ -1,5 +1,6 @@
 "use client";
 
+import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
@@ -86,6 +87,17 @@ export default function RegisterPage() {
             Register
           </button>
         </form>
+        {process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID && (
+          <div className="mt-4 border-t border-stone-200 pt-4">
+            <button
+              type="button"
+              onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
+              className="w-full rounded-lg border border-stone-300 px-4 py-2 text-stone-700 hover:bg-stone-50"
+            >
+              Continue with Google
+            </button>
+          </div>
+        )}
         <p className="mt-4 text-center text-sm text-stone-600">
           Already have an account?{" "}
           <Link href="/login" className="font-medium text-amber-700 hover:underline">
