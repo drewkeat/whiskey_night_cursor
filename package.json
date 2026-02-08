@@ -6,7 +6,8 @@
     "node": ">=20.9.0"
   },
   "scripts": {
-    "dev": "docker compose up -d --wait && npx prisma migrate deploy && npx prisma db seed && next dev",
+    "postinstall": "prisma generate",
+    "dev": "docker compose up -d --wait && npx prisma generate && npx prisma migrate deploy && npx prisma db seed && next dev",
     "dev:no-seed": "docker compose up -d --wait && npx prisma migrate deploy && next dev",
     "build": "next build",
     "start": "docker compose up -d --wait && npx prisma migrate deploy && next start",
