@@ -78,14 +78,32 @@ export default async function WhiskeysPage({
               <li key={w.id}>
                 <Link
                   href={`/whiskeys/${w.id}`}
-                  className="block rounded-xl border border-amber-200/60 bg-white p-4 shadow-sm hover:border-amber-300"
+                  className="flex gap-4 rounded-xl border border-amber-200/60 bg-white p-4 shadow-sm hover:border-amber-300"
                 >
-                  <h2 className="font-medium text-amber-950">{w.name}</h2>
-                  {w.distillery && <p className="text-sm text-stone-600">{w.distillery}</p>}
-                  <div className="mt-2 flex gap-2 text-xs text-stone-500">
-                    {w.type && <span>{w.type}</span>}
-                    {w.abv != null && <span>{w.abv}% ABV</span>}
-                    <span>{w._count.reviews} reviews</span>
+                  {w.imageUrl ? (
+                    <div className="flex h-24 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-amber-50">
+                      <img
+                        src={w.imageUrl}
+                        alt={`Bottle of ${w.name}`}
+                        className="h-full w-full object-contain"
+                      />
+                    </div>
+                  ) : (
+                    <div
+                      className="flex h-24 w-14 shrink-0 items-center justify-center rounded-lg bg-amber-100/60 text-2xl text-amber-300"
+                      aria-hidden
+                    >
+                      🥃
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <h2 className="font-medium text-amber-950">{w.name}</h2>
+                    {w.distillery && <p className="text-sm text-stone-600">{w.distillery}</p>}
+                    <div className="mt-2 flex gap-2 text-xs text-stone-500">
+                      {w.type && <span>{w.type}</span>}
+                      {w.abv != null && <span>{w.abv}% ABV</span>}
+                      <span>{w._count.reviews} reviews</span>
+                    </div>
                   </div>
                 </Link>
               </li>
