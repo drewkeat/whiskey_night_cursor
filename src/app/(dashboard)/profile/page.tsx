@@ -2,14 +2,24 @@ import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { ConnectCalendarSection } from "@/components/profile/ConnectCalendarSection";
 
-export default async function ProfilePage() {
+export default async function ProfilePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string; calendar?: string }>;
+}) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return null;
 
+  const params = await searchParams;
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
     select: { name: true, email: true, phone: true, image: true },
+  });
+  const calendarConnection = await prisma.calendarConnection.findUnique({
+    where: { userId_provider: { userId: session.user.id, provider: "google" } },
+    select: { id: true },
   });
 
   return (
@@ -30,6 +40,11 @@ export default async function ProfilePage() {
             <dd className="text-amber-950">{user?.phone ?? "Not set"}</dd>
           </div>
         </dl>
+        <ConnectCalendarSection
+          connected={!!calendarConnection}
+          error={params.error}
+          success={params.calendar === "connected"}
+        />
         <Link
           href="/profile/notifications"
           className="mt-6 inline-block font-medium text-amber-700 hover:underline"

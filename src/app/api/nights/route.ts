@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { createCalendarEvent } from "@/lib/google-calendar";
+import type { CalendarConnectionWithTokens } from "@/lib/google-calendar";
 
 const createSchema = z.object({
   clubId: z.string(),
@@ -73,6 +75,37 @@ export async function POST(request: Request) {
   const baseUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
   const eventName = night.title ?? `${night.whiskey.name} at ${night.club.name}`;
   const hostName = night.host.name ?? night.host.email ?? "A host";
+  const nightUrl = `${baseUrl}/nights/${night.id}`;
+
+  const hostConnection = await prisma.calendarConnection.findUnique({
+    where: { userId_provider: { userId: night.hostId, provider: "google" } },
+  });
+  if (hostConnection) {
+    const attendeeEmails = night.attendees
+      .filter((a) => a.userId !== night.hostId && a.user.email)
+      .map((a) => a.user.email as string);
+    try {
+      const googleEventId = await createCalendarEvent(
+        hostConnection as CalendarConnectionWithTokens,
+        {
+          summary: eventName,
+          description: [night.notes, `View event: ${nightUrl}`].filter(Boolean).join("\n\n"),
+          start: night.startTime.toISOString(),
+          end: night.endTime.toISOString(),
+          attendeeEmails,
+        }
+      );
+      if (googleEventId) {
+        await prisma.whiskeyNight.update({
+          where: { id: night.id },
+          data: { googleEventId },
+        });
+      }
+    } catch (err) {
+      console.error("Google Calendar event create failed:", err);
+    }
+  }
+
   for (const att of night.attendees) {
     if (att.userId === night.hostId) continue;
     const { notifyEventInvite } = await import("@/lib/notifications");
@@ -83,6 +116,7 @@ export async function POST(request: Request) {
       eventName,
       hostName,
       startTime: night.startTime,
+      endTime: night.endTime,
       nightId: night.id,
       baseUrl,
     }).catch((err) => console.error("Notify invite failed:", err));

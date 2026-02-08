@@ -70,6 +70,21 @@ model User {
   whiskeyLibrary UserWhiskeyLibrary[]
   notificationPreferences UserNotificationPreference[]
   notificationLogs NotificationLog[]
+  calendarConnections CalendarConnection[]
+}
+
+// ---------- Calendar connection (Google Calendar OAuth) ----------
+model CalendarConnection {
+  id           String   @id @default(cuid())
+  userId       String
+  provider     String   @default("google")
+  accessToken  String   @db.Text
+  refreshToken String?  @db.Text
+  expiresAt    DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, provider])
 }
 
 // ---------- Notification preferences and log ----------
@@ -163,15 +178,16 @@ model Whiskey {
 
 // ---------- Whiskey Night (event) ----------
 model WhiskeyNight {
-  id        String   @id @default(cuid())
-  clubId    String
-  hostId    String
-  whiskeyId String
-  title     String?
-  notes     String?  @db.Text
-  startTime DateTime
-  endTime   DateTime
-  createdAt DateTime @default(now())
+  id             String   @id @default(cuid())
+  clubId         String
+  hostId         String
+  whiskeyId      String
+  title          String?
+  notes          String?  @db.Text
+  startTime      DateTime
+  endTime        DateTime
+  googleEventId  String?  // for sync with Google Calendar
+  createdAt      DateTime @default(now())
 
   club     Club                   @relation(fields: [clubId], references: [id], onDelete: Cascade)
   host     User                   @relation("Host", fields: [hostId], references: [id], onDelete: Cascade)

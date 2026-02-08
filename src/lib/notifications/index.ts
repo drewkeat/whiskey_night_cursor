@@ -35,7 +35,14 @@ export async function shouldSend(userId: string, channel: NotificationChannel, c
   return channel === "email";
 }
 
-export async function sendEmail(to: string, subject: string, html: string, category: NotificationCategory, userId: string) {
+export async function sendEmail(
+  to: string,
+  subject: string,
+  html: string,
+  category: NotificationCategory,
+  userId: string,
+  attachments?: { filename: string; content: Buffer }[]
+) {
   if (!resend) return { ok: false, error: "Email not configured" };
   const ok = await shouldSend(userId, "email", category);
   if (!ok) return { ok: true, skipped: true };
@@ -45,6 +52,7 @@ export async function sendEmail(to: string, subject: string, html: string, categ
       to: [to],
       subject,
       html,
+      attachments: attachments?.length ? attachments : undefined,
     });
     if (error) throw new Error(error.message);
     await prisma.notificationLog.create({
@@ -81,6 +89,40 @@ export async function sendSms(to: string, body: string, category: NotificationCa
   }
 }
 
+function formatIcsDate(d: Date): string {
+  return d.toISOString().replace(/[-:]/g, "").slice(0, 15) + "Z";
+}
+
+function buildIcsCalendar(params: {
+  eventName: string;
+  description: string;
+  startTime: Date;
+  endTime: Date;
+  nightId: string;
+  baseUrl: string;
+}): string {
+  const { eventName, description, startTime, endTime, nightId, baseUrl } = params;
+  const uid = `whiskey-night-${nightId}@whiskeynight`;
+  const link = `${baseUrl}/nights/${nightId}`;
+  const lines = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//Whiskey Night//EN",
+    "CALSCALE:GREGORIAN",
+    "BEGIN:VEVENT",
+    `UID:${uid}`,
+    `DTSTAMP:${formatIcsDate(new Date())}`,
+    `DTSTART:${formatIcsDate(startTime)}`,
+    `DTEND:${formatIcsDate(endTime)}`,
+    `SUMMARY:${eventName.replace(/\n/g, " ")}`,
+    `DESCRIPTION:${(description || link).replace(/\n/g, " ")}`,
+    `URL:${link}`,
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ];
+  return lines.join("\r\n");
+}
+
 export async function notifyEventInvite(params: {
   userId: string;
   email: string;
@@ -88,19 +130,32 @@ export async function notifyEventInvite(params: {
   eventName: string;
   hostName: string;
   startTime: Date;
+  endTime: Date;
   nightId: string;
   baseUrl: string;
 }) {
-  const { userId, email, phone, eventName, hostName, startTime, nightId, baseUrl } = params;
+  const { userId, email, phone, eventName, hostName, startTime, endTime, nightId, baseUrl } = params;
   const link = `${baseUrl}/nights/${nightId}`;
   const text = `You're invited to ${eventName} by ${hostName} on ${startTime.toLocaleString()}. ${link}`;
   if (email) {
+    const ics = buildIcsCalendar({
+      eventName,
+      description: `View event: ${link}`,
+      startTime,
+      endTime,
+      nightId,
+      baseUrl,
+    });
+    const attachments = [
+      { filename: "invite.ics", content: Buffer.from(ics, "utf-8") },
+    ];
     await sendEmail(
       email,
       `Invitation: ${eventName}`,
-      `<p>You're invited to <strong>${eventName}</strong> by ${hostName}.</p><p>When: ${startTime.toLocaleString()}</p><p><a href="${link}">View event and respond</a></p>`,
+      `<p>You're invited to <strong>${eventName}</strong> by ${hostName}.</p><p>When: ${startTime.toLocaleString()} – ${endTime.toLocaleTimeString()}</p><p><a href="${link}">View event and respond</a></p><p>Add to your calendar using the attached .ics file.</p>`,
       "event_invite",
-      userId
+      userId,
+      attachments
     );
   }
   if (phone) {
