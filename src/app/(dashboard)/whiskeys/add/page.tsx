@@ -14,7 +14,7 @@ export default function AddWhiskeyPage() {
       </div>
       <h1 className="text-2xl font-semibold text-amber-950">Add a whiskey</h1>
       <p className="mt-1 text-stone-600">
-        Add a new whiskey to the library. You can search the web for details when adding from a night.
+        Add a new whiskey to the library. Enter details manually and add an image via URL or by taking a photo.
       </p>
       <div className="mt-6 max-w-lg">
         <AddWhiskeyForm />

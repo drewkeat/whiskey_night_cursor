@@ -10,7 +10,10 @@ const createSchema = z.object({
   type: z.string().optional(),
   region: z.string().optional(),
   abv: z.number().min(0).max(100).optional(),
-  imageUrl: z.string().url().optional().or(z.literal("")),
+  imageUrl: z
+    .union([z.string().url(), z.string().startsWith("data:image/")])
+    .optional()
+    .or(z.literal("")),
   flavorProfile: z.string().optional(),
   tags: z.array(z.string()).optional(),
   source: z.enum(["manual", "web_search"]).optional(),
