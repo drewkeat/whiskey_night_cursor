@@ -85,7 +85,15 @@ export default async function WhiskeyDetailPage({
           </div>
         </div>
         {session?.user?.id && (
-          <AddToLibraryButton whiskeyId={whiskey.id} alreadyInLibrary={!!inLibrary} />
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/whiskeys/${id}/edit`}
+              className="rounded-lg border border-stone-300 px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
+            >
+              Edit
+            </Link>
+            <AddToLibraryButton whiskeyId={whiskey.id} alreadyInLibrary={!!inLibrary} />
+          </div>
         )}
       </div>
 
