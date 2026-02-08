@@ -41,6 +41,9 @@ yarn-error.log*
 public/sw*
 public/swe-worker*
 
+# Prisma generated client (Prisma 7)
+/generated
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
