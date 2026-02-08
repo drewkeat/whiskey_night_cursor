@@ -89,6 +89,26 @@ export default async function WhiskeyDetailPage({
         )}
       </div>
 
+      {(whiskey.flavorProfile || whiskey.tags.length > 0) && (
+        <div className="mt-4">
+          {whiskey.flavorProfile && (
+            <p className="text-stone-700">{whiskey.flavorProfile}</p>
+          )}
+          {whiskey.tags.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1">
+              {whiskey.tags.map((t) => (
+                <span
+                  key={t}
+                  className="rounded bg-amber-50 px-2 py-0.5 text-sm text-amber-800"
+                >
+                  {t.replace(/_/g, " ")}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {whiskey.imageUrl && (
         <div className="mt-4">
           <img

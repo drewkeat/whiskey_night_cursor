@@ -7,7 +7,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 // ---------- NextAuth required models ----------
@@ -150,6 +149,8 @@ model Whiskey {
   region      String?
   abv         Float?
   imageUrl    String?  @db.Text
+  flavorProfile String? @db.Text
+  tags        String[] @default([]) // e.g. peated, sherry-cask, single-malt
   source      String?  @default("manual") // "manual" | "web_search"
   externalId  String?  // for dedup
   createdAt   DateTime @default(now())

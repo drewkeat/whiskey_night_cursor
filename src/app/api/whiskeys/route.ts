@@ -11,6 +11,8 @@ const createSchema = z.object({
   region: z.string().optional(),
   abv: z.number().min(0).max(100).optional(),
   imageUrl: z.string().url().optional().or(z.literal("")),
+  flavorProfile: z.string().optional(),
+  tags: z.array(z.string()).optional(),
   source: z.enum(["manual", "web_search"]).optional(),
   externalId: z.string().optional(),
 });
@@ -60,6 +62,8 @@ export async function POST(request: Request) {
     data: {
       ...parsed.data,
       imageUrl: parsed.data.imageUrl ?? null,
+      flavorProfile: parsed.data.flavorProfile ?? null,
+      tags: parsed.data.tags ?? [],
       source: parsed.data.source ?? "manual",
     },
   });
