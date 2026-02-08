@@ -181,7 +181,7 @@ model WhiskeyNight {
   id             String   @id @default(cuid())
   clubId         String
   hostId         String
-  whiskeyId      String
+  whiskeyId      String?  // optional: can be set later
   title          String?
   notes          String?  @db.Text
   startTime      DateTime
@@ -191,7 +191,7 @@ model WhiskeyNight {
 
   club     Club                   @relation(fields: [clubId], references: [id], onDelete: Cascade)
   host     User                   @relation("Host", fields: [hostId], references: [id], onDelete: Cascade)
-  whiskey  Whiskey                 @relation(fields: [whiskeyId], references: [id], onDelete: Restrict)
+  whiskey  Whiskey?               @relation(fields: [whiskeyId], references: [id], onDelete: SetNull)
   attendees WhiskeyNightAttendee[]
 }
 

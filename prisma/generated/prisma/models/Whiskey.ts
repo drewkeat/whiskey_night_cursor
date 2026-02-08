@@ -526,6 +526,11 @@ export type WhiskeySumOrderByAggregateInput = {
   abv?: Prisma.SortOrder
 }
 
+export type WhiskeyNullableScalarRelationFilter = {
+  is?: Prisma.WhiskeyWhereInput | null
+  isNot?: Prisma.WhiskeyWhereInput | null
+}
+
 export type WhiskeyScalarRelationFilter = {
   is?: Prisma.WhiskeyWhereInput
   isNot?: Prisma.WhiskeyWhereInput
@@ -554,10 +559,12 @@ export type WhiskeyCreateNestedOneWithoutNightsInput = {
   connect?: Prisma.WhiskeyWhereUniqueInput
 }
 
-export type WhiskeyUpdateOneRequiredWithoutNightsNestedInput = {
+export type WhiskeyUpdateOneWithoutNightsNestedInput = {
   create?: Prisma.XOR<Prisma.WhiskeyCreateWithoutNightsInput, Prisma.WhiskeyUncheckedCreateWithoutNightsInput>
   connectOrCreate?: Prisma.WhiskeyCreateOrConnectWithoutNightsInput
   upsert?: Prisma.WhiskeyUpsertWithoutNightsInput
+  disconnect?: Prisma.WhiskeyWhereInput | boolean
+  delete?: Prisma.WhiskeyWhereInput | boolean
   connect?: Prisma.WhiskeyWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.WhiskeyUpdateToOneWithWhereWithoutNightsInput, Prisma.WhiskeyUpdateWithoutNightsInput>, Prisma.WhiskeyUncheckedUpdateWithoutNightsInput>
 }

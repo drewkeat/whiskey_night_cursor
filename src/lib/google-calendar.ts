@@ -110,6 +110,56 @@ export async function fetchFreeBusy(
   return { busy };
 }
 
+export type CalendarEventItem = {
+  summary: string;
+  start: string; // ISO
+  end: string;
+};
+
+/**
+ * List calendar events for the current user's primary calendar in [timeMin, timeMax].
+ * Returns event summary and start/end for display alongside suggested times.
+ */
+export async function listCalendarEvents(
+  connection: CalendarConnectionWithTokens,
+  timeMin: string,
+  timeMax: string
+): Promise<CalendarEventItem[]> {
+  const token = await getValidAccessToken(connection);
+  if (!token) return [];
+
+  const oauth2Client = new google.auth.OAuth2(
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET,
+    undefined
+  );
+  oauth2Client.setCredentials({ access_token: token });
+  const calendar = google.calendar({ version: "v3", auth: oauth2Client });
+
+  const res = await calendar.events.list({
+    calendarId: "primary",
+    timeMin,
+    timeMax,
+    singleEvents: true,
+    orderBy: "startTime",
+    maxResults: 100,
+  });
+
+  const items: CalendarEventItem[] = [];
+  for (const ev of res.data.items ?? []) {
+    const start = ev.start?.dateTime ?? ev.start?.date;
+    const end = ev.end?.dateTime ?? ev.end?.date;
+    if (start && end) {
+      items.push({
+        summary: ev.summary ?? "(No title)",
+        start,
+        end,
+      });
+    }
+  }
+  return items;
+}
+
 /**
  * Create a calendar event on the host's primary calendar with attendees.
  * Returns the Google event id or null.

@@ -36,7 +36,7 @@ export default async function NightsPage() {
                 className="block rounded-xl border border-amber-200/60 bg-white p-4 shadow-sm hover:border-amber-300"
               >
                 <div className="font-medium text-amber-950">
-                  {a.whiskeyNight.title || `${a.whiskeyNight.whiskey.name} at ${a.whiskeyNight.club.name}`}
+                  {a.whiskeyNight.title || (a.whiskeyNight.whiskey ? `${a.whiskeyNight.whiskey.name} at ${a.whiskeyNight.club.name}` : `Whiskey night at ${a.whiskeyNight.club.name}`)}
                 </div>
                 <div className="mt-1 text-sm text-stone-500">
                   {a.whiskeyNight.startTime.toLocaleDateString()} · {a.whiskeyNight.club.name} · Your status: {a.status}

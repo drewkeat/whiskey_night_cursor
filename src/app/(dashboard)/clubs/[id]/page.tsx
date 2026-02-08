@@ -114,7 +114,7 @@ export default async function ClubDetailPage({
                   className="block rounded-lg border border-amber-200/60 bg-white px-4 py-3 hover:border-amber-300"
                 >
                   <span className="font-medium text-amber-950">
-                    {night.title ?? night.whiskey.name}
+                    {night.title ?? (night.whiskey?.name ?? "Whiskey night")}
                   </span>
                   <span className="ml-2 text-sm text-stone-500">
                     {night.startTime.toLocaleString()} · Host: {night.host.name ?? night.host.email}

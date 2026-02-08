@@ -9,7 +9,7 @@ import type { CalendarConnectionWithTokens } from "@/lib/google-calendar";
 const createSchema = z.object({
   clubId: z.string(),
   hostId: z.string(),
-  whiskeyId: z.string(),
+  whiskeyId: z.string().nullable().optional(), // optional: can add whiskey later
   title: z.string().optional(),
   notes: z.string().optional(),
   startTime: z.string().datetime(),
@@ -35,15 +35,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "You are not a member of this club" }, { status: 403 });
   }
 
+  const whiskeyId = parsed.data.whiskeyId ?? null;
   const [club, whiskey, hostInClub] = await Promise.all([
     prisma.club.findUnique({ where: { id: parsed.data.clubId }, include: { members: true } }),
-    prisma.whiskey.findUnique({ where: { id: parsed.data.whiskeyId } }),
+    whiskeyId ? prisma.whiskey.findUnique({ where: { id: whiskeyId } }) : Promise.resolve(null),
     prisma.clubMember.findFirst({
       where: { clubId: parsed.data.clubId, userId: parsed.data.hostId },
     }),
   ]);
   if (!club) return NextResponse.json({ error: "Club not found" }, { status: 404 });
-  if (!whiskey) return NextResponse.json({ error: "Whiskey not found" }, { status: 404 });
+  if (whiskeyId && !whiskey) return NextResponse.json({ error: "Whiskey not found" }, { status: 404 });
   if (!hostInClub) return NextResponse.json({ error: "Host must be a club member" }, { status: 400 });
 
   const inviteUserIds =
@@ -55,7 +56,7 @@ export async function POST(request: Request) {
     data: {
       clubId: parsed.data.clubId,
       hostId: parsed.data.hostId,
-      whiskeyId: parsed.data.whiskeyId,
+      whiskeyId,
       title: parsed.data.title ?? null,
       notes: parsed.data.notes ?? null,
       startTime: new Date(parsed.data.startTime),
@@ -73,7 +74,7 @@ export async function POST(request: Request) {
   });
 
   const baseUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
-  const eventName = night.title ?? `${night.whiskey.name} at ${night.club.name}`;
+  const eventName = night.title ?? (night.whiskey ? `${night.whiskey.name} at ${night.club.name}` : `Whiskey night at ${night.club.name}`);
   const hostName = night.host.name ?? night.host.email ?? "A host";
   const nightUrl = `${baseUrl}/nights/${night.id}`;
 

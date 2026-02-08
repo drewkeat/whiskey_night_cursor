@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { EventRespondButton } from "@/components/nights/EventRespondButton";
+import { SetWhiskeySection } from "@/components/nights/SetWhiskeySection";
 import { ReviewFormSection } from "@/components/reviews/ReviewFormSection";
 
 export default async function NightDetailPage({
@@ -15,15 +16,18 @@ export default async function NightDetailPage({
   if (!session?.user?.id) return null;
 
   const { id } = await params;
-  const night = await prisma.whiskeyNight.findUnique({
-    where: { id },
-    include: {
-      club: true,
-      host: { select: { id: true, name: true, email: true } },
-      whiskey: true,
-      attendees: { include: { user: { select: { id: true, name: true, email: true } } } },
-    },
-  });
+  const [night, whiskeys] = await Promise.all([
+    prisma.whiskeyNight.findUnique({
+      where: { id },
+      include: {
+        club: true,
+        host: { select: { id: true, name: true, email: true } },
+        whiskey: true,
+        attendees: { include: { user: { select: { id: true, name: true, email: true } } } },
+      },
+    }),
+    prisma.whiskey.findMany({ orderBy: { name: "asc" } }),
+  ]);
 
   if (!night) notFound();
 
@@ -39,10 +43,10 @@ export default async function NightDetailPage({
     );
   }
 
-  const accepted = night.attendees.filter((a) => a.status === "accepted");
+  const isHost = night.hostId === session.user.id;
   const canReview =
+    night.whiskey &&
     myAttendance.status === "accepted" &&
-    night.whiskeyId &&
     (() => {
       const start = night.startTime;
       const end = night.endTime;
@@ -50,21 +54,27 @@ export default async function NightDetailPage({
       return now >= start && now <= end;
     })();
 
-  const existingReview = await prisma.review.findFirst({
-    where: {
-      userId: session.user.id,
-      whiskeyId: night.whiskeyId,
-      reviewableType: "event",
-      reviewableId: night.id,
-    },
-  });
+  const existingReview = night.whiskeyId
+    ? await prisma.review.findFirst({
+        where: {
+          userId: session.user.id,
+          whiskeyId: night.whiskeyId,
+          reviewableType: "event",
+          reviewableId: night.id,
+        },
+      })
+    : null;
+
+  const title =
+    night.title ??
+    (night.whiskey ? `${night.whiskey.name} at ${night.club.name}` : `Whiskey night at ${night.club.name}`);
 
   return (
     <div>
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-amber-950">
-            {night.title ?? `${night.whiskey.name} at ${night.club.name}`}
+            {title}
           </h1>
           <p className="mt-1 text-stone-600">
             <Link href={`/clubs/${night.club.id}`} className="text-amber-700 hover:underline">
@@ -84,13 +94,20 @@ export default async function NightDetailPage({
 
       <section className="mt-6 rounded-xl border border-amber-200/60 bg-white p-4">
         <h2 className="font-medium text-amber-950">Whiskey</h2>
-        <Link
-          href={`/whiskeys/${night.whiskey.id}`}
-          className="mt-1 block text-amber-700 hover:underline"
-        >
-          {night.whiskey.name}
-          {night.whiskey.distillery && ` · ${night.whiskey.distillery}`}
-        </Link>
+        {night.whiskey ? (
+          <Link
+            href={`/whiskeys/${night.whiskey.id}`}
+            className="mt-1 block text-amber-700 hover:underline"
+          >
+            {night.whiskey.name}
+            {night.whiskey.distillery && ` · ${night.whiskey.distillery}`}
+          </Link>
+        ) : (
+          <>
+            <p className="mt-1 text-stone-500">TBD</p>
+            {isHost && <SetWhiskeySection nightId={night.id} whiskeys={whiskeys} />}
+          </>
+        )}
       </section>
 
       {night.notes && (
@@ -122,9 +139,9 @@ export default async function NightDetailPage({
         </ul>
       </section>
 
-      {canReview && !existingReview && (
+      {night.whiskey && canReview && !existingReview && (
         <ReviewFormSection
-          whiskeyId={night.whiskeyId}
+          whiskeyId={night.whiskey.id}
           reviewableType="event"
           reviewableId={night.id}
           whiskeyName={night.whiskey.name}

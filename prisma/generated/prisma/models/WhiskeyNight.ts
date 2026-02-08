@@ -181,7 +181,7 @@ export type WhiskeyNightGroupByOutputType = {
   id: string
   clubId: string
   hostId: string
-  whiskeyId: string
+  whiskeyId: string | null
   title: string | null
   notes: string | null
   startTime: Date
@@ -215,7 +215,7 @@ export type WhiskeyNightWhereInput = {
   id?: Prisma.StringFilter<"WhiskeyNight"> | string
   clubId?: Prisma.StringFilter<"WhiskeyNight"> | string
   hostId?: Prisma.StringFilter<"WhiskeyNight"> | string
-  whiskeyId?: Prisma.StringFilter<"WhiskeyNight"> | string
+  whiskeyId?: Prisma.StringNullableFilter<"WhiskeyNight"> | string | null
   title?: Prisma.StringNullableFilter<"WhiskeyNight"> | string | null
   notes?: Prisma.StringNullableFilter<"WhiskeyNight"> | string | null
   startTime?: Prisma.DateTimeFilter<"WhiskeyNight"> | Date | string
@@ -224,7 +224,7 @@ export type WhiskeyNightWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"WhiskeyNight"> | Date | string
   club?: Prisma.XOR<Prisma.ClubScalarRelationFilter, Prisma.ClubWhereInput>
   host?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-  whiskey?: Prisma.XOR<Prisma.WhiskeyScalarRelationFilter, Prisma.WhiskeyWhereInput>
+  whiskey?: Prisma.XOR<Prisma.WhiskeyNullableScalarRelationFilter, Prisma.WhiskeyWhereInput> | null
   attendees?: Prisma.WhiskeyNightAttendeeListRelationFilter
 }
 
@@ -232,7 +232,7 @@ export type WhiskeyNightOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   clubId?: Prisma.SortOrder
   hostId?: Prisma.SortOrder
-  whiskeyId?: Prisma.SortOrder
+  whiskeyId?: Prisma.SortOrderInput | Prisma.SortOrder
   title?: Prisma.SortOrderInput | Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   startTime?: Prisma.SortOrder
@@ -252,7 +252,7 @@ export type WhiskeyNightWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.WhiskeyNightWhereInput | Prisma.WhiskeyNightWhereInput[]
   clubId?: Prisma.StringFilter<"WhiskeyNight"> | string
   hostId?: Prisma.StringFilter<"WhiskeyNight"> | string
-  whiskeyId?: Prisma.StringFilter<"WhiskeyNight"> | string
+  whiskeyId?: Prisma.StringNullableFilter<"WhiskeyNight"> | string | null
   title?: Prisma.StringNullableFilter<"WhiskeyNight"> | string | null
   notes?: Prisma.StringNullableFilter<"WhiskeyNight"> | string | null
   startTime?: Prisma.DateTimeFilter<"WhiskeyNight"> | Date | string
@@ -261,7 +261,7 @@ export type WhiskeyNightWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"WhiskeyNight"> | Date | string
   club?: Prisma.XOR<Prisma.ClubScalarRelationFilter, Prisma.ClubWhereInput>
   host?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-  whiskey?: Prisma.XOR<Prisma.WhiskeyScalarRelationFilter, Prisma.WhiskeyWhereInput>
+  whiskey?: Prisma.XOR<Prisma.WhiskeyNullableScalarRelationFilter, Prisma.WhiskeyWhereInput> | null
   attendees?: Prisma.WhiskeyNightAttendeeListRelationFilter
 }, "id">
 
@@ -269,7 +269,7 @@ export type WhiskeyNightOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   clubId?: Prisma.SortOrder
   hostId?: Prisma.SortOrder
-  whiskeyId?: Prisma.SortOrder
+  whiskeyId?: Prisma.SortOrderInput | Prisma.SortOrder
   title?: Prisma.SortOrderInput | Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   startTime?: Prisma.SortOrder
@@ -288,7 +288,7 @@ export type WhiskeyNightScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"WhiskeyNight"> | string
   clubId?: Prisma.StringWithAggregatesFilter<"WhiskeyNight"> | string
   hostId?: Prisma.StringWithAggregatesFilter<"WhiskeyNight"> | string
-  whiskeyId?: Prisma.StringWithAggregatesFilter<"WhiskeyNight"> | string
+  whiskeyId?: Prisma.StringNullableWithAggregatesFilter<"WhiskeyNight"> | string | null
   title?: Prisma.StringNullableWithAggregatesFilter<"WhiskeyNight"> | string | null
   notes?: Prisma.StringNullableWithAggregatesFilter<"WhiskeyNight"> | string | null
   startTime?: Prisma.DateTimeWithAggregatesFilter<"WhiskeyNight"> | Date | string
@@ -307,7 +307,7 @@ export type WhiskeyNightCreateInput = {
   createdAt?: Date | string
   club: Prisma.ClubCreateNestedOneWithoutNightsInput
   host: Prisma.UserCreateNestedOneWithoutHostedNightsInput
-  whiskey: Prisma.WhiskeyCreateNestedOneWithoutNightsInput
+  whiskey?: Prisma.WhiskeyCreateNestedOneWithoutNightsInput
   attendees?: Prisma.WhiskeyNightAttendeeCreateNestedManyWithoutWhiskeyNightInput
 }
 
@@ -315,7 +315,7 @@ export type WhiskeyNightUncheckedCreateInput = {
   id?: string
   clubId: string
   hostId: string
-  whiskeyId: string
+  whiskeyId?: string | null
   title?: string | null
   notes?: string | null
   startTime: Date | string
@@ -335,7 +335,7 @@ export type WhiskeyNightUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   club?: Prisma.ClubUpdateOneRequiredWithoutNightsNestedInput
   host?: Prisma.UserUpdateOneRequiredWithoutHostedNightsNestedInput
-  whiskey?: Prisma.WhiskeyUpdateOneRequiredWithoutNightsNestedInput
+  whiskey?: Prisma.WhiskeyUpdateOneWithoutNightsNestedInput
   attendees?: Prisma.WhiskeyNightAttendeeUpdateManyWithoutWhiskeyNightNestedInput
 }
 
@@ -343,7 +343,7 @@ export type WhiskeyNightUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clubId?: Prisma.StringFieldUpdateOperationsInput | string
   hostId?: Prisma.StringFieldUpdateOperationsInput | string
-  whiskeyId?: Prisma.StringFieldUpdateOperationsInput | string
+  whiskeyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -357,7 +357,7 @@ export type WhiskeyNightCreateManyInput = {
   id?: string
   clubId: string
   hostId: string
-  whiskeyId: string
+  whiskeyId?: string | null
   title?: string | null
   notes?: string | null
   startTime: Date | string
@@ -380,7 +380,7 @@ export type WhiskeyNightUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clubId?: Prisma.StringFieldUpdateOperationsInput | string
   hostId?: Prisma.StringFieldUpdateOperationsInput | string
-  whiskeyId?: Prisma.StringFieldUpdateOperationsInput | string
+  whiskeyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -592,14 +592,14 @@ export type WhiskeyNightCreateWithoutHostInput = {
   googleEventId?: string | null
   createdAt?: Date | string
   club: Prisma.ClubCreateNestedOneWithoutNightsInput
-  whiskey: Prisma.WhiskeyCreateNestedOneWithoutNightsInput
+  whiskey?: Prisma.WhiskeyCreateNestedOneWithoutNightsInput
   attendees?: Prisma.WhiskeyNightAttendeeCreateNestedManyWithoutWhiskeyNightInput
 }
 
 export type WhiskeyNightUncheckedCreateWithoutHostInput = {
   id?: string
   clubId: string
-  whiskeyId: string
+  whiskeyId?: string | null
   title?: string | null
   notes?: string | null
   startTime: Date | string
@@ -642,7 +642,7 @@ export type WhiskeyNightScalarWhereInput = {
   id?: Prisma.StringFilter<"WhiskeyNight"> | string
   clubId?: Prisma.StringFilter<"WhiskeyNight"> | string
   hostId?: Prisma.StringFilter<"WhiskeyNight"> | string
-  whiskeyId?: Prisma.StringFilter<"WhiskeyNight"> | string
+  whiskeyId?: Prisma.StringNullableFilter<"WhiskeyNight"> | string | null
   title?: Prisma.StringNullableFilter<"WhiskeyNight"> | string | null
   notes?: Prisma.StringNullableFilter<"WhiskeyNight"> | string | null
   startTime?: Prisma.DateTimeFilter<"WhiskeyNight"> | Date | string
@@ -660,14 +660,14 @@ export type WhiskeyNightCreateWithoutClubInput = {
   googleEventId?: string | null
   createdAt?: Date | string
   host: Prisma.UserCreateNestedOneWithoutHostedNightsInput
-  whiskey: Prisma.WhiskeyCreateNestedOneWithoutNightsInput
+  whiskey?: Prisma.WhiskeyCreateNestedOneWithoutNightsInput
   attendees?: Prisma.WhiskeyNightAttendeeCreateNestedManyWithoutWhiskeyNightInput
 }
 
 export type WhiskeyNightUncheckedCreateWithoutClubInput = {
   id?: string
   hostId: string
-  whiskeyId: string
+  whiskeyId?: string | null
   title?: string | null
   notes?: string | null
   startTime: Date | string
@@ -765,14 +765,14 @@ export type WhiskeyNightCreateWithoutAttendeesInput = {
   createdAt?: Date | string
   club: Prisma.ClubCreateNestedOneWithoutNightsInput
   host: Prisma.UserCreateNestedOneWithoutHostedNightsInput
-  whiskey: Prisma.WhiskeyCreateNestedOneWithoutNightsInput
+  whiskey?: Prisma.WhiskeyCreateNestedOneWithoutNightsInput
 }
 
 export type WhiskeyNightUncheckedCreateWithoutAttendeesInput = {
   id?: string
   clubId: string
   hostId: string
-  whiskeyId: string
+  whiskeyId?: string | null
   title?: string | null
   notes?: string | null
   startTime: Date | string
@@ -807,14 +807,14 @@ export type WhiskeyNightUpdateWithoutAttendeesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   club?: Prisma.ClubUpdateOneRequiredWithoutNightsNestedInput
   host?: Prisma.UserUpdateOneRequiredWithoutHostedNightsNestedInput
-  whiskey?: Prisma.WhiskeyUpdateOneRequiredWithoutNightsNestedInput
+  whiskey?: Prisma.WhiskeyUpdateOneWithoutNightsNestedInput
 }
 
 export type WhiskeyNightUncheckedUpdateWithoutAttendeesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clubId?: Prisma.StringFieldUpdateOperationsInput | string
   hostId?: Prisma.StringFieldUpdateOperationsInput | string
-  whiskeyId?: Prisma.StringFieldUpdateOperationsInput | string
+  whiskeyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -826,7 +826,7 @@ export type WhiskeyNightUncheckedUpdateWithoutAttendeesInput = {
 export type WhiskeyNightCreateManyHostInput = {
   id?: string
   clubId: string
-  whiskeyId: string
+  whiskeyId?: string | null
   title?: string | null
   notes?: string | null
   startTime: Date | string
@@ -844,14 +844,14 @@ export type WhiskeyNightUpdateWithoutHostInput = {
   googleEventId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   club?: Prisma.ClubUpdateOneRequiredWithoutNightsNestedInput
-  whiskey?: Prisma.WhiskeyUpdateOneRequiredWithoutNightsNestedInput
+  whiskey?: Prisma.WhiskeyUpdateOneWithoutNightsNestedInput
   attendees?: Prisma.WhiskeyNightAttendeeUpdateManyWithoutWhiskeyNightNestedInput
 }
 
 export type WhiskeyNightUncheckedUpdateWithoutHostInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clubId?: Prisma.StringFieldUpdateOperationsInput | string
-  whiskeyId?: Prisma.StringFieldUpdateOperationsInput | string
+  whiskeyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -864,7 +864,7 @@ export type WhiskeyNightUncheckedUpdateWithoutHostInput = {
 export type WhiskeyNightUncheckedUpdateManyWithoutHostInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clubId?: Prisma.StringFieldUpdateOperationsInput | string
-  whiskeyId?: Prisma.StringFieldUpdateOperationsInput | string
+  whiskeyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -876,7 +876,7 @@ export type WhiskeyNightUncheckedUpdateManyWithoutHostInput = {
 export type WhiskeyNightCreateManyClubInput = {
   id?: string
   hostId: string
-  whiskeyId: string
+  whiskeyId?: string | null
   title?: string | null
   notes?: string | null
   startTime: Date | string
@@ -894,14 +894,14 @@ export type WhiskeyNightUpdateWithoutClubInput = {
   googleEventId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   host?: Prisma.UserUpdateOneRequiredWithoutHostedNightsNestedInput
-  whiskey?: Prisma.WhiskeyUpdateOneRequiredWithoutNightsNestedInput
+  whiskey?: Prisma.WhiskeyUpdateOneWithoutNightsNestedInput
   attendees?: Prisma.WhiskeyNightAttendeeUpdateManyWithoutWhiskeyNightNestedInput
 }
 
 export type WhiskeyNightUncheckedUpdateWithoutClubInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   hostId?: Prisma.StringFieldUpdateOperationsInput | string
-  whiskeyId?: Prisma.StringFieldUpdateOperationsInput | string
+  whiskeyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -914,7 +914,7 @@ export type WhiskeyNightUncheckedUpdateWithoutClubInput = {
 export type WhiskeyNightUncheckedUpdateManyWithoutClubInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   hostId?: Prisma.StringFieldUpdateOperationsInput | string
-  whiskeyId?: Prisma.StringFieldUpdateOperationsInput | string
+  whiskeyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1017,7 +1017,7 @@ export type WhiskeyNightSelect<ExtArgs extends runtime.Types.Extensions.Internal
   createdAt?: boolean
   club?: boolean | Prisma.ClubDefaultArgs<ExtArgs>
   host?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  whiskey?: boolean | Prisma.WhiskeyDefaultArgs<ExtArgs>
+  whiskey?: boolean | Prisma.WhiskeyNight$whiskeyArgs<ExtArgs>
   attendees?: boolean | Prisma.WhiskeyNight$attendeesArgs<ExtArgs>
   _count?: boolean | Prisma.WhiskeyNightCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["whiskeyNight"]>
@@ -1035,7 +1035,7 @@ export type WhiskeyNightSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   createdAt?: boolean
   club?: boolean | Prisma.ClubDefaultArgs<ExtArgs>
   host?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  whiskey?: boolean | Prisma.WhiskeyDefaultArgs<ExtArgs>
+  whiskey?: boolean | Prisma.WhiskeyNight$whiskeyArgs<ExtArgs>
 }, ExtArgs["result"]["whiskeyNight"]>
 
 export type WhiskeyNightSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1051,7 +1051,7 @@ export type WhiskeyNightSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   createdAt?: boolean
   club?: boolean | Prisma.ClubDefaultArgs<ExtArgs>
   host?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  whiskey?: boolean | Prisma.WhiskeyDefaultArgs<ExtArgs>
+  whiskey?: boolean | Prisma.WhiskeyNight$whiskeyArgs<ExtArgs>
 }, ExtArgs["result"]["whiskeyNight"]>
 
 export type WhiskeyNightSelectScalar = {
@@ -1071,19 +1071,19 @@ export type WhiskeyNightOmit<ExtArgs extends runtime.Types.Extensions.InternalAr
 export type WhiskeyNightInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   club?: boolean | Prisma.ClubDefaultArgs<ExtArgs>
   host?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  whiskey?: boolean | Prisma.WhiskeyDefaultArgs<ExtArgs>
+  whiskey?: boolean | Prisma.WhiskeyNight$whiskeyArgs<ExtArgs>
   attendees?: boolean | Prisma.WhiskeyNight$attendeesArgs<ExtArgs>
   _count?: boolean | Prisma.WhiskeyNightCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type WhiskeyNightIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   club?: boolean | Prisma.ClubDefaultArgs<ExtArgs>
   host?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  whiskey?: boolean | Prisma.WhiskeyDefaultArgs<ExtArgs>
+  whiskey?: boolean | Prisma.WhiskeyNight$whiskeyArgs<ExtArgs>
 }
 export type WhiskeyNightIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   club?: boolean | Prisma.ClubDefaultArgs<ExtArgs>
   host?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  whiskey?: boolean | Prisma.WhiskeyDefaultArgs<ExtArgs>
+  whiskey?: boolean | Prisma.WhiskeyNight$whiskeyArgs<ExtArgs>
 }
 
 export type $WhiskeyNightPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1091,14 +1091,14 @@ export type $WhiskeyNightPayload<ExtArgs extends runtime.Types.Extensions.Intern
   objects: {
     club: Prisma.$ClubPayload<ExtArgs>
     host: Prisma.$UserPayload<ExtArgs>
-    whiskey: Prisma.$WhiskeyPayload<ExtArgs>
+    whiskey: Prisma.$WhiskeyPayload<ExtArgs> | null
     attendees: Prisma.$WhiskeyNightAttendeePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     clubId: string
     hostId: string
-    whiskeyId: string
+    whiskeyId: string | null
     title: string | null
     notes: string | null
     startTime: Date
@@ -1501,7 +1501,7 @@ export interface Prisma__WhiskeyNightClient<T, Null = never, ExtArgs extends run
   readonly [Symbol.toStringTag]: "PrismaPromise"
   club<T extends Prisma.ClubDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClubDefaultArgs<ExtArgs>>): Prisma.Prisma__ClubClient<runtime.Types.Result.GetResult<Prisma.$ClubPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   host<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  whiskey<T extends Prisma.WhiskeyDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.WhiskeyDefaultArgs<ExtArgs>>): Prisma.Prisma__WhiskeyClient<runtime.Types.Result.GetResult<Prisma.$WhiskeyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  whiskey<T extends Prisma.WhiskeyNight$whiskeyArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.WhiskeyNight$whiskeyArgs<ExtArgs>>): Prisma.Prisma__WhiskeyClient<runtime.Types.Result.GetResult<Prisma.$WhiskeyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   attendees<T extends Prisma.WhiskeyNight$attendeesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.WhiskeyNight$attendeesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WhiskeyNightAttendeePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1935,6 +1935,25 @@ export type WhiskeyNightDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.
    * Limit how many WhiskeyNights to delete.
    */
   limit?: number
+}
+
+/**
+ * WhiskeyNight.whiskey
+ */
+export type WhiskeyNight$whiskeyArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Whiskey
+   */
+  select?: Prisma.WhiskeySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Whiskey
+   */
+  omit?: Prisma.WhiskeyOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.WhiskeyInclude<ExtArgs> | null
+  where?: Prisma.WhiskeyWhereInput
 }
 
 /**
