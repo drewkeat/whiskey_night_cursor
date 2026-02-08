@@ -85,6 +85,38 @@ Run the full stack (Postgres + Next.js app) on a server with Docker Compose.
 
    Use a reverse proxy (e.g. Nginx, Caddy) and TLS in front of port 3000; set `NEXTAUTH_URL` to your public URL.
 
+## Deploy to Netlify
+
+Netlify runs Next.js via `@netlify/plugin-nextjs` (serverless/edge). Use a **hosted Postgres** (no Docker on Netlify).
+
+1. **Hosted Postgres**  
+   Create a project on [Neon](https://neon.tech) or [Supabase](https://supabase.com) (or another hosted Postgres). Copy the connection string for `DATABASE_URL`.
+
+2. **Netlify site**  
+   In Netlify: **Add new site → Import an existing project**, connect your Git provider, and select the repo. Set the production branch (e.g. `main`). Each push to that branch will trigger a build and deploy.
+
+3. **Environment variables**  
+   In Netlify: **Site settings → Environment variables**, add the same vars as in `.env.example` (and any others the app reads). At minimum:
+   - **Required:** `DATABASE_URL` (hosted Postgres), `NEXTAUTH_SECRET`, `NEXTAUTH_URL` (e.g. `https://your-site.netlify.app`)
+   - **Auth:** `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `NEXT_PUBLIC_GOOGLE_CLIENT_ID`; for calendar: `GOOGLE_CALENDAR_REDIRECT_URI` (e.g. `https://your-site.netlify.app/api/calendar/callback`)
+   - **Optional:** `RESEND_*`, `TWILIO_*`, `OPENAI_API_KEY`, `SEARCH_API_KEY`, `CRON_SECRET`, etc.  
+   Do not commit `.env`; keep production secrets only in Netlify.
+
+4. **OAuth redirect URIs**  
+   In Google Cloud Console (and any other OAuth providers):
+   - Add `https://your-site.netlify.app/api/auth/callback/google` for NextAuth.
+   - Add `https://your-site.netlify.app/api/calendar/callback` for Google Calendar (same or same-type OAuth client).
+
+5. **Build**  
+   The repo’s `netlify.toml` uses `npm run build:netlify`, which runs `prisma generate`, `prisma migrate deploy`, then `next build`. Migrations run against the build-time `DATABASE_URL`; ensure your hosted DB allows connections from Netlify. Do **not** run `db:seed` in the Netlify build (seed production once manually if needed).
+
+6. **Reminders cron**  
+   Netlify does not run a long-lived cron. To send event reminders, either use **Netlify Scheduled Functions** or an **external cron** (e.g. cron-job.org, GitHub Actions) that calls:
+   ```http
+   GET https://your-site.netlify.app/api/notifications/reminders
+   Authorization: Bearer YOUR_CRON_SECRET
+   ```
+
 ## Setup (without Docker)
 
 1. Clone and install:
@@ -138,6 +170,7 @@ The app includes a web manifest and service worker. Replace `public/icons/icon-1
 - `npm run dev` – start Postgres, migrate, seed, then run Next.js dev server (one command for local testing)
 - `npm run dev:no-seed` – same as `dev` but skip seeding (use when DB already has data)
 - `npm run build` – production build
+- `npm run build:netlify` – Prisma generate + migrate deploy + next build (used by Netlify)
 - `npm run start` – start Postgres, migrate, then run production server
 - `npm run db:up` – start Postgres (Docker)
 - `npm run db:down` – stop Postgres (Docker)

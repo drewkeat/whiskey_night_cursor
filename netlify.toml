@@ -1,0 +1,9 @@
+# Netlify configuration for Whiskey Night (Next.js + Prisma)
+# Requires a hosted Postgres (e.g. Neon, Supabase); set DATABASE_URL in Netlify env.
+
+[build]
+  command = "npm run build:netlify"
+  environment = { NODE_VERSION = "20" }
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"

@@ -10,6 +10,7 @@
     "dev": "docker compose up -d --wait && npx prisma generate && npx prisma migrate deploy && npx prisma db seed && next dev",
     "dev:no-seed": "docker compose up -d --wait && npx prisma migrate deploy && next dev",
     "build": "next build",
+    "build:netlify": "prisma generate && prisma migrate deploy && next build",
     "start": "docker compose up -d --wait && npx prisma migrate deploy && next start",
     "lint": "eslint",
     "db:up": "docker compose up -d",
