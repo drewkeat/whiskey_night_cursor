@@ -26,6 +26,10 @@ export const metadata: Metadata = {
   title: "Whiskey Night",
   description: "Plan and schedule Whiskey Night events with your club",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/favicon.png",
+    apple: "/icons/icon-192.png",
+  },
 };
 
 export default function RootLayout({
@@ -35,9 +39,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head>
-        <link rel="apple-touch-icon" href="/icons/icon-192.png" />
-      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <SerwistProvider swUrl="/serwist/sw.js">
           <SessionProvider>{children}</SessionProvider>
