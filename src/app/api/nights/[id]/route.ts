@@ -47,7 +47,6 @@ export async function PATCH(
   const { id } = await params;
   const night = await prisma.whiskeyNight.findUnique({
     where: { id },
-    include: { hostId: true },
   });
   if (!night) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
