@@ -2,8 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Whiskey } from "@prisma/client";
+
+const DEFAULT_SLOT_HOURS = 2;
 
 type Member = { id: string; name: string | null; email: string | null };
 
@@ -11,18 +13,37 @@ function cellOverlaps(startMs: number, endMs: number, cellStart: number, cellEnd
   return startMs < cellEnd && endMs > cellStart;
 }
 
+function cellStartMs(day: { date: Date }, hour: number): number {
+  return new Date(
+    day.date.getFullYear(),
+    day.date.getMonth(),
+    day.date.getDate(),
+    hour,
+    0,
+    0
+  ).getTime();
+}
+
+const CELL_WIDTH = 52;
+const HOUR_COL_WIDTH = 40;
+
 function CalendarAlignmentGrid({
   timeMin,
   timeMax,
   slots,
   userEvents,
   calendarConnected,
+  onSelectSlot,
+  selectedRange,
 }: {
   timeMin: string;
   timeMax: string;
   slots: { start: string; end: string }[];
   userEvents: { summary: string; start: string; end: string }[];
   calendarConnected: boolean;
+  onSelectSlot?: (slot: { start: string; end: string }) => void;
+  /** When set, cells overlapping this range stay highlighted after selection */
+  selectedRange?: { start: string; end: string } | null;
 }) {
   const { days, hourLabels } = useMemo(() => {
     const tMin = new Date(timeMin);
@@ -62,6 +83,137 @@ function CalendarAlignmentGrid({
     return result;
   }, [days, hourLabels, slots, userEvents]);
 
+  const [dragAnchor, setDragAnchor] = useState<{ rowIdx: number; colIdx: number } | null>(null);
+  const [dragCurrent, setDragCurrent] = useState<{ rowIdx: number; colIdx: number } | null>(null);
+
+  const applySelection = useCallback(
+    (anchor: { rowIdx: number; colIdx: number }, current: { rowIdx: number; colIdx: number }) => {
+      if (!onSelectSlot || days.length === 0) return;
+      const anchorDay = days[anchor.colIdx];
+      const currentDay = days[current.colIdx];
+      const anchorHour = hourLabels[anchor.rowIdx];
+      const currentHour = hourLabels[current.rowIdx];
+      const startMs = cellStartMs(anchorDay, anchorHour);
+      const endMs = cellStartMs(currentDay, currentHour);
+      const rangeStartMs = Math.min(startMs, endMs);
+      const rangeEndMs = Math.max(startMs, endMs) + 60 * 60 * 1000;
+      onSelectSlot({
+        start: new Date(rangeStartMs).toISOString(),
+        end: new Date(rangeEndMs).toISOString(),
+      });
+    },
+    [days, hourLabels, onSelectSlot]
+  );
+
+  const handleCellInteraction = useCallback(
+    (rowIdx: number, colIdx: number, isDrag: boolean) => {
+      if (!onSelectSlot || colIdx >= days.length) return;
+      const day = days[colIdx];
+      const hour = hourLabels[rowIdx];
+      const cellStartMsVal = cellStartMs(day, hour);
+      if (isDrag && dragAnchor) {
+        applySelection(dragAnchor, { rowIdx, colIdx });
+        return;
+      }
+      const overlappingSlot = slots.find((s) => {
+        const sStart = new Date(s.start).getTime();
+        const sEnd = new Date(s.end).getTime();
+        return cellStartMsVal >= sStart && cellStartMsVal < sEnd;
+      });
+      if (overlappingSlot) {
+        onSelectSlot({ start: overlappingSlot.start, end: overlappingSlot.end });
+        return;
+      }
+      const endMs = cellStartMsVal + DEFAULT_SLOT_HOURS * 60 * 60 * 1000;
+      onSelectSlot({
+        start: new Date(cellStartMsVal).toISOString(),
+        end: new Date(endMs).toISOString(),
+      });
+    },
+    [days, hourLabels, onSelectSlot, slots, dragAnchor, applySelection]
+  );
+
+  const handleMouseDown = useCallback(
+    (rowIdx: number, colIdx: number) => {
+      if (!onSelectSlot) return;
+      setDragAnchor({ rowIdx, colIdx });
+      setDragCurrent({ rowIdx, colIdx });
+    },
+    [onSelectSlot]
+  );
+
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent) => {
+      if (dragAnchor === null) return;
+      const target = e.target as HTMLElement;
+      const row = target.closest("[data-row]")?.getAttribute("data-row");
+      const col = target.closest("[data-col]")?.getAttribute("data-col");
+      if (row != null && col != null) {
+        const rowIdx = parseInt(row, 10);
+        const colIdx = parseInt(col, 10);
+        if (!Number.isNaN(rowIdx) && !Number.isNaN(colIdx)) {
+          setDragCurrent((prev) => (prev?.rowIdx === rowIdx && prev?.colIdx === colIdx ? prev : { rowIdx, colIdx }));
+        }
+      }
+    },
+    [dragAnchor]
+  );
+
+  const handleMouseUp = useCallback(() => {
+    if (dragAnchor !== null && dragCurrent !== null) {
+      const moved = dragAnchor.rowIdx !== dragCurrent.rowIdx || dragAnchor.colIdx !== dragCurrent.colIdx;
+      if (moved) {
+        applySelection(dragAnchor, dragCurrent);
+      } else {
+        handleCellInteraction(dragAnchor.rowIdx, dragAnchor.colIdx, false);
+      }
+    }
+    setDragAnchor(null);
+    setDragCurrent(null);
+  }, [dragAnchor, dragCurrent, applySelection, handleCellInteraction]);
+
+  useEffect(() => {
+    if (dragAnchor === null) return;
+    window.addEventListener("mouseup", handleMouseUp);
+    return () => window.removeEventListener("mouseup", handleMouseUp);
+  }, [dragAnchor, handleMouseUp]);
+
+  const isInDragRange = useCallback(
+    (rowIdx: number, colIdx: number) => {
+      if (dragAnchor === null || dragCurrent === null) return false;
+      const rMin = Math.min(dragAnchor.rowIdx, dragCurrent.rowIdx);
+      const rMax = Math.max(dragAnchor.rowIdx, dragCurrent.rowIdx);
+      const cMin = Math.min(dragAnchor.colIdx, dragCurrent.colIdx);
+      const cMax = Math.max(dragAnchor.colIdx, dragCurrent.colIdx);
+      return rowIdx >= rMin && rowIdx <= rMax && colIdx >= cMin && colIdx <= cMax;
+    },
+    [dragAnchor, dragCurrent]
+  );
+
+  const isInSelectedRange = useCallback(
+    (rowIdx: number, colIdx: number) => {
+      if (!selectedRange?.start || !selectedRange?.end) return false;
+      const day = days[colIdx];
+      if (!day) return false;
+      const hour = hourLabels[rowIdx];
+      const cellStart = cellStartMs(day, hour);
+      const cellEnd = cellStart + 60 * 60 * 1000;
+      const rangeStart = new Date(selectedRange.start).getTime();
+      const rangeEnd = new Date(selectedRange.end).getTime();
+      return cellOverlaps(rangeStart, rangeEnd, cellStart, cellEnd);
+    },
+    [days, hourLabels, selectedRange]
+  );
+
+  const gridCols = useMemo(
+    () => `${HOUR_COL_WIDTH}px repeat(${days.length}, ${CELL_WIDTH}px)`,
+    [days.length]
+  );
+  const gridRows = useMemo(
+    () => `32px repeat(${hourLabels.length}, 24px)`,
+    [hourLabels.length]
+  );
+
   if (days.length === 0) return null;
 
   return (
@@ -71,62 +223,99 @@ function CalendarAlignmentGrid({
           Connect Google Calendar in Profile to see your events on this grid.
         </p>
       )}
-      <div className="flex min-w-0">
-        <div className="sticky left-0 z-10 flex shrink-0 flex-col border-r border-stone-200 bg-stone-50/80">
-          <div className="h-8 shrink-0" />
-          {hourLabels.map((h) => (
-            <div
-              key={h}
-              className="flex h-6 items-center px-2 text-xs text-stone-500"
-              style={{ minHeight: 24 }}
-            >
-              {h === 0 ? "12a" : h < 12 ? `${h}a` : h === 12 ? "12p" : `${h - 12}p`}
-            </div>
-          ))}
-        </div>
-        <div className="flex flex-1 flex-col">
-          <div className="flex border-b border-stone-200">
-            {days.map((day) => (
-              <div
-                key={day.label}
-                className="min-w-[52px] shrink-0 px-1 py-1.5 text-center text-xs font-medium text-stone-600"
-              >
-                {day.label}
-              </div>
-            ))}
+      <div
+        className="select-none"
+        style={{
+          display: "grid",
+          gridTemplateColumns: gridCols,
+          gridTemplateRows: gridRows,
+          minWidth: HOUR_COL_WIDTH + days.length * CELL_WIDTH,
+        }}
+        onMouseMove={dragAnchor !== null ? handleMouseMove : undefined}
+      >
+        <div className="sticky left-0 z-10 border-r border-stone-200 bg-stone-50/80" style={{ gridColumn: 1, gridRow: 1 }} />
+        {days.map((day, colIdx) => (
+          <div
+            key={day.label}
+            className="flex items-center justify-center border-b border-r border-stone-200 bg-stone-50/80 py-1.5 text-center text-xs font-medium text-stone-600"
+            style={{
+              gridColumn: colIdx + 2,
+              gridRow: 1,
+              width: CELL_WIDTH,
+              minWidth: CELL_WIDTH,
+            }}
+          >
+            {day.label}
           </div>
-          {hourLabels.map((h, rowIdx) => (
-            <div key={h} className="flex">
-              {days.map((_, colIdx) => {
-                const cell = grid[rowIdx]?.[colIdx];
-                if (!cell) return null;
-                const { userBusy, suggested } = cell;
-                let bg = "bg-white";
-                let title = "Free";
-                if (userBusy && suggested) {
-                  bg = "bg-amber-200/80";
-                  title = "Suggested time · you have an event";
-                } else if (userBusy) {
-                  bg = "bg-stone-200";
-                  title = "Your event";
-                } else if (suggested) {
-                  bg = "bg-amber-100";
-                  title = "Suggested time";
-                }
-                return (
-                  <div
-                    key={colIdx}
-                    className={`min-w-[52px] shrink-0 border-b border-r border-stone-100 last:border-r-0 ${bg}`}
-                    style={{ minHeight: 24 }}
-                    title={title}
-                  />
-                );
-              })}
-            </div>
-          ))}
-        </div>
+        ))}
+        {hourLabels.map((h, rowIdx) => (
+          <div
+            key={`h-${h}`}
+            className="sticky left-0 z-10 flex h-6 items-center border-r border-stone-200 bg-stone-50/80 px-2 text-xs text-stone-500"
+            style={{ gridColumn: 1, gridRow: rowIdx + 2 }}
+          >
+            {h === 0 ? "12a" : h < 12 ? `${h}a` : h === 12 ? "12p" : `${h - 12}p`}
+          </div>
+        ))}
+        {hourLabels.map((h, rowIdx) =>
+          days.map((_, colIdx) => {
+            const cell = grid[rowIdx]?.[colIdx];
+            if (!cell) return null;
+            const { userBusy, suggested } = cell;
+            const dragging = isInDragRange(rowIdx, colIdx);
+            const selected = isInSelectedRange(rowIdx, colIdx);
+            let bg = "bg-white";
+            let title = "Free";
+            if (dragging) {
+              bg = "bg-amber-500/30 ring-1 ring-amber-500/50";
+              title = "Selecting…";
+            } else if (selected) {
+              bg = "bg-amber-400/40 ring-1 ring-amber-500/60";
+              title = "Selected time";
+            } else if (userBusy && suggested) {
+              bg = "bg-amber-200/80";
+              title = "Suggested time · you have an event";
+            } else if (userBusy) {
+              bg = "bg-stone-200";
+              title = "Your event";
+            } else if (suggested) {
+              bg = "bg-amber-100";
+              title = "Suggested time";
+            }
+            return (
+              <div
+                key={`${rowIdx}-${colIdx}`}
+                data-row={rowIdx}
+                data-col={colIdx}
+                role="button"
+                tabIndex={0}
+                className={`cursor-pointer border-b border-r border-stone-100 last:border-r-0 ${bg} ${onSelectSlot ? "hover:opacity-90" : ""}`}
+                style={{
+                  gridColumn: colIdx + 2,
+                  gridRow: rowIdx + 2,
+                  minHeight: 24,
+                  width: CELL_WIDTH,
+                  minWidth: CELL_WIDTH,
+                }}
+                title={title}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  handleMouseDown(rowIdx, colIdx);
+                }}
+              />
+            );
+          })
+        )}
       </div>
+      {onSelectSlot && (
+        <p className="border-t border-stone-200 bg-amber-50/50 px-3 py-1.5 text-xs text-stone-600">
+          Click a time to select it (or a 2-hour block). Drag across cells to pick a range. Suggested slots are highlighted.
+        </p>
+      )}
       <div className="flex flex-wrap gap-4 border-t border-stone-200 bg-stone-50/50 px-3 py-2 text-xs text-stone-600">
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block h-4 w-4 rounded bg-amber-400/40 ring-1 ring-amber-500/60" /> Selected
+        </span>
         <span className="flex items-center gap-1.5">
           <span className="inline-block h-4 w-4 rounded bg-amber-100" /> Suggested time
         </span>
@@ -308,14 +497,32 @@ export function CreateNightForm({
       : `${start.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })} – ${end.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}`;
   }
 
+  function toLocalDateString(d: Date) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  }
+
   function applySlot(slot: { start: string; end: string }) {
     const s = new Date(slot.start);
     const e = new Date(slot.end);
-    setStartDate(s.toISOString().slice(0, 10));
+    setStartDate(toLocalDateString(s));
     setStartTime(s.toTimeString().slice(0, 5));
-    setEndDate(e.toISOString().slice(0, 10));
+    setEndDate(toLocalDateString(e));
     setEndTime(e.toTimeString().slice(0, 5));
   }
+
+  // Selected range for grid highlight (when start/end are valid and within view)
+  const selectedRangeForGrid =
+    startDate && startTime && endDate && endTime
+      ? (() => {
+          const start = new Date(`${startDate}T${startTime}`);
+          const end = new Date(`${endDate}T${endTime}`);
+          if (isNaN(start.getTime()) || isNaN(end.getTime()) || end <= start) return null;
+          return { start: start.toISOString(), end: end.toISOString() };
+        })()
+      : null;
 
   // Build calendar grid: days from range, hours 8–22 (local). Each cell: user event overlap vs suggested slot overlap.
   const calendarGrid =
@@ -326,6 +533,8 @@ export function CreateNightForm({
         slots={availabilitySlots}
         userEvents={userCalendarEvents?.events ?? []}
         calendarConnected={userCalendarEvents?.connected ?? false}
+        onSelectSlot={applySlot}
+        selectedRange={selectedRangeForGrid}
       />
     ) : null;
 
