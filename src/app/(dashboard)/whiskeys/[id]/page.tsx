@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { AddToLibraryButton } from "@/components/whiskey/AddToLibraryButton";
+import { DeleteWhiskeyButton } from "@/components/whiskey/DeleteWhiskeyButton";
 
 export default async function WhiskeyDetailPage({
   params,
@@ -85,7 +86,7 @@ export default async function WhiskeyDetailPage({
           </div>
         </div>
         {session?.user?.id && (
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Link
               href={`/whiskeys/${id}/edit`}
               className="rounded-lg border border-stone-300 px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
@@ -93,6 +94,7 @@ export default async function WhiskeyDetailPage({
               Edit
             </Link>
             <AddToLibraryButton whiskeyId={whiskey.id} alreadyInLibrary={!!inLibrary} />
+            <DeleteWhiskeyButton whiskeyId={whiskey.id} whiskeyName={whiskey.name} />
           </div>
         )}
       </div>

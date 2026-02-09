@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { EditWhiskeyForm } from "@/components/forms/EditWhiskeyForm";
+import { DeleteWhiskeyButton } from "@/components/whiskey/DeleteWhiskeyButton";
 
 export default async function EditWhiskeyPage({
   params,
@@ -22,13 +23,14 @@ export default async function EditWhiskeyPage({
 
   return (
     <div>
-      <div className="mb-6">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <Link
           href={`/whiskeys/${id}`}
           className="text-sm text-amber-700 hover:underline"
         >
           ← Back to {whiskey.name}
         </Link>
+        <DeleteWhiskeyButton whiskeyId={whiskey.id} whiskeyName={whiskey.name} />
       </div>
       <h1 className="text-2xl font-semibold text-amber-950">Edit whiskey</h1>
       <p className="mt-1 text-stone-600">
