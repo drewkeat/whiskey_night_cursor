@@ -27,7 +27,7 @@ export function EditWhiskeyForm({ whiskey, className = "" }: { whiskey: Whiskey;
     setError("");
     const tags = tagsInput
       .split(",")
-      .map((t) => t.trim().toLowerCase())
+      .map((t: string) => t.trim().toLowerCase())
       .filter(Boolean);
     const res = await fetch(`/api/whiskeys/${whiskey.id}`, {
       method: "PATCH",
