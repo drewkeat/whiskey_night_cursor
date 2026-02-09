@@ -156,6 +156,7 @@ export function CreateNightForm({
   const [hostId, setHostId] = useState(members[0]?.id ?? "");
   const [whiskeyId, setWhiskeyId] = useState<string | "">(whiskeys[0]?.id ?? ""); // "" = add later
   const [title, setTitle] = useState("");
+  const [location, setLocation] = useState("");
   const [notes, setNotes] = useState("");
   const [startDate, setStartDate] = useState("");
   const [startTime, setStartTime] = useState("19:00");
@@ -204,6 +205,7 @@ export function CreateNightForm({
         whiskeyId: whiskeyId || null,
         title: title || undefined,
         notes: notes || undefined,
+        location: location || undefined,
         startTime: start.toISOString(),
         endTime: end.toISOString(),
         attendeeIds: attendeeIds.length > 0 ? attendeeIds : undefined,
@@ -375,6 +377,19 @@ export function CreateNightForm({
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="e.g. Monthly tasting"
+          className="w-full rounded-lg border border-stone-300 px-3 py-2 text-stone-900 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+        />
+      </div>
+      <div>
+        <label htmlFor="location" className="mb-1 block text-sm font-medium text-stone-700">
+          Location (optional)
+        </label>
+        <input
+          id="location"
+          type="text"
+          value={location}
+          onChange={(e) => setLocation(e.target.value)}
+          placeholder="e.g. 123 Main St, City"
           className="w-full rounded-lg border border-stone-300 px-3 py-2 text-stone-900 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
         />
       </div>

@@ -169,6 +169,7 @@ export async function createCalendarEvent(
   params: {
     summary: string;
     description?: string;
+    location?: string;
     start: string; // RFC3339
     end: string;
     attendeeEmails: string[];
@@ -190,6 +191,7 @@ export async function createCalendarEvent(
     requestBody: {
       summary: params.summary,
       description: params.description ?? undefined,
+      location: params.location ?? undefined,
       start: { dateTime: params.start, timeZone: "UTC" },
       end: { dateTime: params.end, timeZone: "UTC" },
       attendees: params.attendeeEmails.filter(Boolean).map((email) => ({ email })),

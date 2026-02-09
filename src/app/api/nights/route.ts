@@ -12,6 +12,7 @@ const createSchema = z.object({
   whiskeyId: z.string().nullable().optional(), // optional: can add whiskey later
   title: z.string().optional(),
   notes: z.string().optional(),
+  location: z.string().optional(),
   startTime: z.string().datetime(),
   endTime: z.string().datetime(),
   attendeeIds: z.array(z.string()).optional(), // if empty, invite all club members
@@ -59,6 +60,7 @@ export async function POST(request: Request) {
       whiskeyId,
       title: parsed.data.title ?? null,
       notes: parsed.data.notes ?? null,
+      location: parsed.data.location?.trim() || null,
       startTime: new Date(parsed.data.startTime),
       endTime: new Date(parsed.data.endTime),
       attendees: {
@@ -91,6 +93,7 @@ export async function POST(request: Request) {
         {
           summary: eventName,
           description: [night.notes, `View event: ${nightUrl}`].filter(Boolean).join("\n\n"),
+          location: night.location ?? undefined,
           start: night.startTime.toISOString(),
           end: night.endTime.toISOString(),
           attendeeEmails,
@@ -120,6 +123,7 @@ export async function POST(request: Request) {
       endTime: night.endTime,
       nightId: night.id,
       baseUrl,
+      location: night.location,
     }).catch((err) => console.error("Notify invite failed:", err));
   }
 

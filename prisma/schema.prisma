@@ -186,6 +186,7 @@ model WhiskeyNight {
   whiskeyId      String?  // optional: can be set later
   title          String?
   notes          String?  @db.Text
+  location       String?  // optional venue/address
   startTime      DateTime
   endTime        DateTime
   googleEventId  String?  // for sync with Google Calendar

@@ -84,6 +84,7 @@ export default async function NightDetailPage({
           <div className="mt-2 flex flex-wrap gap-3 text-sm text-stone-500">
             <span>{night.startTime.toLocaleString()} – {night.endTime.toLocaleTimeString()}</span>
             <span>Host: {night.host.name ?? night.host.email}</span>
+            {night.location && <span>Where: {night.location}</span>}
           </div>
         </div>
         <EventRespondButton

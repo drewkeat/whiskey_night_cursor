@@ -99,6 +99,10 @@ function formatIcsDate(d: Date): string {
   return d.toISOString().replace(/[-:]/g, "").slice(0, 15) + "Z";
 }
 
+function escapeIcsText(s: string): string {
+  return s.replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\n/g, "\\n");
+}
+
 function buildIcsCalendar(params: {
   eventName: string;
   description: string;
@@ -106,8 +110,9 @@ function buildIcsCalendar(params: {
   endTime: Date;
   nightId: string;
   baseUrl: string;
+  location?: string | null;
 }): string {
-  const { eventName, description, startTime, endTime, nightId, baseUrl } = params;
+  const { eventName, description, startTime, endTime, nightId, baseUrl, location } = params;
   const uid = `whiskey-night-${nightId}@whiskeynight`;
   const link = `${baseUrl}/nights/${nightId}`;
   const lines = [
@@ -120,9 +125,10 @@ function buildIcsCalendar(params: {
     `DTSTAMP:${formatIcsDate(new Date())}`,
     `DTSTART:${formatIcsDate(startTime)}`,
     `DTEND:${formatIcsDate(endTime)}`,
-    `SUMMARY:${eventName.replace(/\n/g, " ")}`,
-    `DESCRIPTION:${(description || link).replace(/\n/g, " ")}`,
+    `SUMMARY:${escapeIcsText(eventName.replace(/\n/g, " "))}`,
+    `DESCRIPTION:${escapeIcsText((description || link).replace(/\n/g, " "))}`,
     `URL:${link}`,
+    ...(location?.trim() ? [`LOCATION:${escapeIcsText(location.trim())}`] : []),
     "END:VEVENT",
     "END:VCALENDAR",
   ];
@@ -139,10 +145,12 @@ export async function notifyEventInvite(params: {
   endTime: Date;
   nightId: string;
   baseUrl: string;
+  location?: string | null;
 }) {
-  const { userId, email, phone, eventName, hostName, startTime, endTime, nightId, baseUrl } = params;
+  const { userId, email, phone, eventName, hostName, startTime, endTime, nightId, baseUrl, location } = params;
   const link = `${baseUrl}/nights/${nightId}`;
-  const text = `You're invited to ${eventName} by ${hostName} on ${startTime.toLocaleString()}. ${link}`;
+  const locationSuffix = location?.trim() ? ` at ${location.trim()}` : "";
+  const text = `You're invited to ${eventName} by ${hostName} on ${startTime.toLocaleString()}${locationSuffix}. ${link}`;
   if (email) {
     const ics = buildIcsCalendar({
       eventName,
@@ -151,6 +159,7 @@ export async function notifyEventInvite(params: {
       endTime,
       nightId,
       baseUrl,
+      location,
     });
     const attachments = [
       { filename: "invite.ics", content: Buffer.from(ics, "utf-8") },
@@ -158,7 +167,7 @@ export async function notifyEventInvite(params: {
     await sendEmail(
       email,
       `Invitation: ${eventName}`,
-      `<p>You're invited to <strong>${eventName}</strong> by ${hostName}.</p><p>When: ${startTime.toLocaleString()} – ${endTime.toLocaleTimeString()}</p><p><a href="${link}">View event and respond</a></p><p>Add to your calendar using the attached .ics file.</p>`,
+      `<p>You're invited to <strong>${eventName}</strong> by ${hostName}.</p><p>When: ${startTime.toLocaleString()} – ${endTime.toLocaleTimeString()}</p>${location?.trim() ? `<p>Where: ${location.trim()}</p>` : ""}<p><a href="${link}">View event and respond</a></p><p>Add to your calendar using the attached .ics file.</p>`,
       "event_invite",
       userId,
       attachments

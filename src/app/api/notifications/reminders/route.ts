@@ -44,7 +44,8 @@ export async function GET(request: Request) {
 
     const eventName = night.title ?? (night.whiskey ? `${night.whiskey.name} at ${night.club.name}` : `Whiskey night at ${night.club.name}`);
     const subject = `Reminder: ${eventName} ${is1h ? "starts in ~1 hour" : "tomorrow"}`;
-    const body = `${eventName} ${is1h ? "starts in about an hour" : `is tomorrow at ${night.startTime.toLocaleString()}`}. ${baseUrl}/nights/${night.id}`;
+    const locationSuffix = night.location?.trim() ? ` at ${night.location.trim()}` : "";
+    const body = `${eventName} ${is1h ? "starts in about an hour" : `is tomorrow at ${night.startTime.toLocaleString()}`}${locationSuffix}. ${baseUrl}/nights/${night.id}`;
 
     for (const att of night.attendees) {
       if (att.userId === night.hostId) continue;

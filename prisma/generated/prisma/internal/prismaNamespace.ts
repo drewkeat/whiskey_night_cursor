@@ -1867,6 +1867,7 @@ export const WhiskeyNightScalarFieldEnum = {
   whiskeyId: 'whiskeyId',
   title: 'title',
   notes: 'notes',
+  location: 'location',
   startTime: 'startTime',
   endTime: 'endTime',
   googleEventId: 'googleEventId',
