@@ -47,7 +47,7 @@ export default function NotificationsPage() {
     if (res.ok) router.refresh();
   }
 
-  if (loading) return <p className="text-stone-500">Loading…</p>;
+  if (loading) return <p className="text-stone-600">Loading…</p>;
 
   const byCategory = preferences.reduce(
     (acc, p) => {
@@ -58,38 +58,55 @@ export default function NotificationsPage() {
     {} as Record<string, Pref[]>
   );
 
+  const channelLabel = (ch: string) => (ch === "sms" ? "SMS" : ch);
+
   return (
-    <div>
-      <Link href="/profile" className="text-sm text-amber-700 hover:underline">
+    <div className="rounded-xl border border-amber-200/60 bg-white p-6 shadow-sm md:p-8">
+      <Link
+        href="/profile"
+        className="inline-flex items-center text-sm font-medium text-amber-800 hover:text-amber-900 hover:underline"
+      >
         ← Profile
       </Link>
-      <h1 className="mt-4 text-2xl font-semibold text-amber-950">Notification preferences</h1>
-      <p className="mt-1 text-stone-600">Choose how you want to be notified (email and/or SMS).</p>
-      <form onSubmit={handleSave} className="mt-6 max-w-md space-y-6">
-        {Object.entries(byCategory).map(([category, prefs]) => (
-          <fieldset key={category} className="rounded-xl border border-amber-200/60 bg-white p-4">
-            <legend className="font-medium text-amber-950">
-              {CATEGORY_LABELS[category] ?? category}
-            </legend>
-            <div className="mt-3 flex gap-6">
-              {prefs.map((p) => (
-                <label key={`${p.channel}-${p.category}`} className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={p.enabled}
-                    onChange={() => toggle(p.channel, p.category)}
-                    className="rounded border-stone-300 text-amber-600 focus:ring-amber-500"
-                  />
-                  <span className="text-sm capitalize">{p.channel}</span>
-                </label>
-              ))}
-            </div>
-          </fieldset>
-        ))}
+      <h1 className="mt-4 text-2xl font-semibold text-stone-900">Notification preferences</h1>
+      <p className="mt-1.5 text-stone-600">
+        Choose how you want to be notified (email and/or SMS).
+      </p>
+      <form onSubmit={handleSave} className="mt-6 max-w-md">
+        <div className="space-y-4">
+          {Object.entries(byCategory).map(([category, prefs]) => (
+            <fieldset
+              key={category}
+              className="rounded-lg border border-stone-200 bg-stone-50/80 py-3 px-4"
+            >
+              <legend className="px-1 text-sm font-semibold text-stone-800">
+                {CATEGORY_LABELS[category] ?? category}
+              </legend>
+              <div className="mt-2 flex flex-wrap gap-x-6 gap-y-2">
+                {prefs.map((p) => (
+                  <label
+                    key={`${p.channel}-${p.category}`}
+                    className="flex cursor-pointer items-center gap-2"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={p.enabled}
+                      onChange={() => toggle(p.channel, p.category)}
+                      className="h-4 w-4 rounded border-stone-300 text-amber-600 focus:ring-2 focus:ring-amber-500 focus:ring-offset-0"
+                    />
+                    <span className="text-sm font-medium text-stone-700">
+                      {channelLabel(p.channel)}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          ))}
+        </div>
         <button
           type="submit"
           disabled={saving}
-          className="rounded-lg bg-amber-700 px-4 py-2 font-medium text-white hover:bg-amber-800 disabled:opacity-50"
+          className="mt-6 rounded-lg bg-amber-700 px-4 py-2.5 font-medium text-white hover:bg-amber-800 disabled:opacity-50"
         >
           {saving ? "Saving…" : "Save preferences"}
         </button>

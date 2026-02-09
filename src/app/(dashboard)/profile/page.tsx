@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { ConnectCalendarSection } from "@/components/profile/ConnectCalendarSection";
+import { ProfileForm } from "@/components/profile/ProfileForm";
 
 export default async function ProfilePage({
   searchParams,
@@ -25,29 +26,18 @@ export default async function ProfilePage({
   return (
     <div>
       <h1 className="text-2xl font-semibold text-amber-950">Profile</h1>
-      <div className="mt-6 rounded-xl border border-amber-200/60 bg-white p-6 max-w-md">
-        <dl className="space-y-3">
-          <div>
-            <dt className="text-sm font-medium text-stone-500">Name</dt>
-            <dd className="text-amber-950">{user?.name ?? "—"}</dd>
-          </div>
-          <div>
-            <dt className="text-sm font-medium text-stone-500">Email</dt>
-            <dd className="text-amber-950">{user?.email ?? "—"}</dd>
-          </div>
-          <div>
-            <dt className="text-sm font-medium text-stone-500">Phone (for SMS)</dt>
-            <dd className="text-amber-950">{user?.phone ?? "Not set"}</dd>
-          </div>
-        </dl>
-        <ConnectCalendarSection
-          connected={!!calendarConnection}
-          error={params.error}
-          success={params.calendar === "connected"}
-        />
+      <div className="mt-6 max-w-md space-y-6 rounded-xl border border-amber-200/60 bg-white p-6">
+        <ProfileForm user={{ name: user?.name ?? null, email: user?.email ?? null, phone: user?.phone ?? null }} />
+        <div className="border-t border-stone-200 pt-6">
+            <ConnectCalendarSection
+            connected={!!calendarConnection}
+            error={params.error}
+            success={params.calendar === "connected"}
+          />
+        </div>
         <Link
           href="/profile/notifications"
-          className="mt-6 inline-block font-medium text-amber-700 hover:underline"
+          className="inline-block font-medium text-amber-700 hover:underline"
         >
           Notification preferences →
         </Link>
