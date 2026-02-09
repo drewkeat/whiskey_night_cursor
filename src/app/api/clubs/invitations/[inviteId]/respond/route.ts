@@ -29,7 +29,12 @@ export async function POST(
   if (!invite) {
     return NextResponse.json({ error: "Invitation not found" }, { status: 404 });
   }
-  if (invite.inviteeId !== session.user.id) {
+  const sessionEmail = session.user.email?.trim().toLowerCase();
+  const inviteeEmail = invite.inviteeEmail.trim().toLowerCase();
+  const isAuthorized =
+    invite.inviteeId === session.user.id ||
+    (sessionEmail && inviteeEmail === sessionEmail);
+  if (!isAuthorized) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   if (invite.status !== "pending") {
@@ -37,20 +42,20 @@ export async function POST(
   }
   if (parsed.data.action === "accept") {
     const existing = await prisma.clubMember.findUnique({
-      where: { userId_clubId: { userId: invite.inviteeId, clubId: invite.clubId } },
+      where: { userId_clubId: { userId: session.user.id, clubId: invite.clubId } },
     });
     if (!existing) {
       await prisma.clubMember.create({
         data: {
           clubId: invite.clubId,
-          userId: invite.inviteeId,
+          userId: session.user.id,
           role: invite.role,
         },
       });
     }
     await prisma.clubInvite.update({
       where: { id: inviteId },
-      data: { status: "accepted" },
+      data: { status: "accepted", inviteeId: session.user.id },
     });
     return NextResponse.json({ ok: true, clubId: invite.clubId });
   }

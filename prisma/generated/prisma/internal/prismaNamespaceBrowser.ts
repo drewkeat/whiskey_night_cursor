@@ -190,6 +190,8 @@ export const ClubInviteScalarFieldEnum = {
   clubId: 'clubId',
   inviterId: 'inviterId',
   inviteeId: 'inviteeId',
+  inviteeEmail: 'inviteeEmail',
+  inviteToken: 'inviteToken',
   role: 'role',
   status: 'status',
   createdAt: 'createdAt'

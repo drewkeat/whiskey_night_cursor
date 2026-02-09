@@ -7,8 +7,15 @@ export default async function ClubInvitationsPage() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return null;
 
+  const userEmail = session.user.email?.trim().toLowerCase();
   const invites = await prisma.clubInvite.findMany({
-    where: { inviteeId: session.user.id, status: "pending" },
+    where: {
+      status: "pending",
+      OR: [
+        { inviteeId: session.user.id },
+        ...(userEmail ? [{ inviteeEmail: userEmail, inviteeId: null }] : []),
+      ],
+    },
     include: {
       club: { select: { id: true, name: true } },
       inviter: { select: { id: true, name: true, email: true } },

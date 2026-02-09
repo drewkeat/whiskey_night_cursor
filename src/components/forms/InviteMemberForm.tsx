@@ -24,7 +24,7 @@ export function InviteMemberForm({ clubId, className = "" }: { clubId: string; c
       setError(data.error?.email?.[0] ?? "Failed to invite");
       return;
     }
-    setSuccess(`Invitation sent to ${email}. They can accept from their Invitations page.`);
+    setSuccess(`Invitation sent to ${email}. They'll receive an email with a link to join. If they already have an account, they can also accept from their Invitations page.`);
     setEmail("");
     router.refresh();
   }

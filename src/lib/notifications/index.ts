@@ -10,6 +10,12 @@ const twilioClient =
 const fromEmail = process.env.RESEND_FROM_EMAIL ?? "Whiskey Night <noreply@example.com>";
 const fromPhone = process.env.TWILIO_PHONE_NUMBER ?? "";
 
+export function getBaseUrl(): string {
+  if (process.env.NEXTAUTH_URL) return process.env.NEXTAUTH_URL;
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+  return "http://localhost:3000";
+}
+
 export type NotificationCategory = "event_invite" | "club" | "account";
 export type NotificationChannel = "email" | "sms";
 
@@ -184,6 +190,26 @@ export async function notifyClubUpdate(params: {
   if (phone) {
     await sendSms(phone, `${clubName}: ${message.slice(0, 100)} ${link}`, "club", userId);
   }
+}
+
+export async function notifyClubInvite(params: {
+  inviteeEmail: string;
+  inviterName: string | null;
+  clubName: string;
+  inviteToken: string;
+  inviterId: string;
+}) {
+  const { inviteeEmail, inviterName, clubName, inviteToken, inviterId } = params;
+  const baseUrl = getBaseUrl();
+  const link = `${baseUrl}/invite/${inviteToken}`;
+  const inviterLabel = inviterName ?? "Someone";
+  await sendEmail(
+    inviteeEmail,
+    `You're invited to join ${clubName} on Whiskey Night`,
+    `<p>${inviterLabel} has invited you to join <strong>${clubName}</strong> on Whiskey Night.</p><p><a href="${link}">Accept invitation</a></p><p>If you already have an account, you can also accept from your Invitations page after signing in.</p>`,
+    "club",
+    inviterId
+  );
 }
 
 export async function notifyAccountWelcome(params: { userId: string; email: string; name: string | null }) {

@@ -85,7 +85,7 @@ export default async function ClubDetailPage({
                 key={inv.id}
                 className="flex items-center rounded-lg border border-amber-200/60 bg-amber-50/30 px-4 py-2"
               >
-                <span className="text-stone-700">{inv.invitee.name ?? inv.invitee.email}</span>
+                <span className="text-stone-700">{inv.invitee?.name ?? inv.invitee?.email ?? inv.inviteeEmail}</span>
                 <span className="ml-2 text-sm text-stone-500">pending</span>
               </li>
             ))}

@@ -467,6 +467,11 @@ export type UserMinOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
 }
 
+export type UserNullableScalarRelationFilter = {
+  is?: Prisma.UserWhereInput | null
+  isNot?: Prisma.UserWhereInput | null
+}
+
 export type UserCreateNestedOneWithoutAccountsInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutAccountsInput, Prisma.UserUncheckedCreateWithoutAccountsInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutAccountsInput
@@ -575,10 +580,12 @@ export type UserUpdateOneRequiredWithoutClubInvitesSentNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutClubInvitesSentInput, Prisma.UserUpdateWithoutClubInvitesSentInput>, Prisma.UserUncheckedUpdateWithoutClubInvitesSentInput>
 }
 
-export type UserUpdateOneRequiredWithoutClubInvitesReceivedNestedInput = {
+export type UserUpdateOneWithoutClubInvitesReceivedNestedInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutClubInvitesReceivedInput, Prisma.UserUncheckedCreateWithoutClubInvitesReceivedInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutClubInvitesReceivedInput
   upsert?: Prisma.UserUpsertWithoutClubInvitesReceivedInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
   connect?: Prisma.UserWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutClubInvitesReceivedInput, Prisma.UserUpdateWithoutClubInvitesReceivedInput>, Prisma.UserUncheckedUpdateWithoutClubInvitesReceivedInput>
 }

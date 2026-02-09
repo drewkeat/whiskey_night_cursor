@@ -8,8 +8,15 @@ export async function GET() {
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  const userEmail = session.user.email?.trim().toLowerCase();
   const invites = await prisma.clubInvite.findMany({
-    where: { inviteeId: session.user.id, status: "pending" },
+    where: {
+      status: "pending",
+      OR: [
+        { inviteeId: session.user.id },
+        ...(userEmail ? [{ inviteeEmail: userEmail, inviteeId: null }] : []),
+      ],
+    },
     include: {
       club: { select: { id: true, name: true } },
       inviter: { select: { id: true, name: true, email: true } },

@@ -13,7 +13,17 @@ export default async function DashboardPage() {
       where: { userId: session.user.id, status: "accepted" },
     }),
     prisma.userWhiskeyLibrary.count({ where: { userId: session.user.id } }),
-    prisma.clubInvite.count({ where: { inviteeId: session.user.id, status: "pending" } }),
+    prisma.clubInvite.count({
+      where: {
+        status: "pending",
+        OR: [
+          { inviteeId: session.user.id },
+          ...(session.user.email
+            ? [{ inviteeEmail: session.user.email.trim().toLowerCase(), inviteeId: null }]
+            : []),
+        ],
+      },
+    }),
   ]);
 
   return (

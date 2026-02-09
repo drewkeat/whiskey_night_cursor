@@ -29,6 +29,8 @@ export type ClubInviteMinAggregateOutputType = {
   clubId: string | null
   inviterId: string | null
   inviteeId: string | null
+  inviteeEmail: string | null
+  inviteToken: string | null
   role: string | null
   status: string | null
   createdAt: Date | null
@@ -39,6 +41,8 @@ export type ClubInviteMaxAggregateOutputType = {
   clubId: string | null
   inviterId: string | null
   inviteeId: string | null
+  inviteeEmail: string | null
+  inviteToken: string | null
   role: string | null
   status: string | null
   createdAt: Date | null
@@ -49,6 +53,8 @@ export type ClubInviteCountAggregateOutputType = {
   clubId: number
   inviterId: number
   inviteeId: number
+  inviteeEmail: number
+  inviteToken: number
   role: number
   status: number
   createdAt: number
@@ -61,6 +67,8 @@ export type ClubInviteMinAggregateInputType = {
   clubId?: true
   inviterId?: true
   inviteeId?: true
+  inviteeEmail?: true
+  inviteToken?: true
   role?: true
   status?: true
   createdAt?: true
@@ -71,6 +79,8 @@ export type ClubInviteMaxAggregateInputType = {
   clubId?: true
   inviterId?: true
   inviteeId?: true
+  inviteeEmail?: true
+  inviteToken?: true
   role?: true
   status?: true
   createdAt?: true
@@ -81,6 +91,8 @@ export type ClubInviteCountAggregateInputType = {
   clubId?: true
   inviterId?: true
   inviteeId?: true
+  inviteeEmail?: true
+  inviteToken?: true
   role?: true
   status?: true
   createdAt?: true
@@ -163,7 +175,9 @@ export type ClubInviteGroupByOutputType = {
   id: string
   clubId: string
   inviterId: string
-  inviteeId: string
+  inviteeId: string | null
+  inviteeEmail: string
+  inviteToken: string | null
   role: string
   status: string
   createdAt: Date
@@ -194,20 +208,24 @@ export type ClubInviteWhereInput = {
   id?: Prisma.StringFilter<"ClubInvite"> | string
   clubId?: Prisma.StringFilter<"ClubInvite"> | string
   inviterId?: Prisma.StringFilter<"ClubInvite"> | string
-  inviteeId?: Prisma.StringFilter<"ClubInvite"> | string
+  inviteeId?: Prisma.StringNullableFilter<"ClubInvite"> | string | null
+  inviteeEmail?: Prisma.StringFilter<"ClubInvite"> | string
+  inviteToken?: Prisma.StringNullableFilter<"ClubInvite"> | string | null
   role?: Prisma.StringFilter<"ClubInvite"> | string
   status?: Prisma.StringFilter<"ClubInvite"> | string
   createdAt?: Prisma.DateTimeFilter<"ClubInvite"> | Date | string
   club?: Prisma.XOR<Prisma.ClubScalarRelationFilter, Prisma.ClubWhereInput>
   inviter?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-  invitee?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  invitee?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }
 
 export type ClubInviteOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   clubId?: Prisma.SortOrder
   inviterId?: Prisma.SortOrder
-  inviteeId?: Prisma.SortOrder
+  inviteeId?: Prisma.SortOrderInput | Prisma.SortOrder
+  inviteeEmail?: Prisma.SortOrder
+  inviteToken?: Prisma.SortOrderInput | Prisma.SortOrder
   role?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -218,26 +236,30 @@ export type ClubInviteOrderByWithRelationInput = {
 
 export type ClubInviteWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  clubId_inviteeId?: Prisma.ClubInviteClubIdInviteeIdCompoundUniqueInput
+  inviteToken?: string
+  clubId_inviteeEmail?: Prisma.ClubInviteClubIdInviteeEmailCompoundUniqueInput
   AND?: Prisma.ClubInviteWhereInput | Prisma.ClubInviteWhereInput[]
   OR?: Prisma.ClubInviteWhereInput[]
   NOT?: Prisma.ClubInviteWhereInput | Prisma.ClubInviteWhereInput[]
   clubId?: Prisma.StringFilter<"ClubInvite"> | string
   inviterId?: Prisma.StringFilter<"ClubInvite"> | string
-  inviteeId?: Prisma.StringFilter<"ClubInvite"> | string
+  inviteeId?: Prisma.StringNullableFilter<"ClubInvite"> | string | null
+  inviteeEmail?: Prisma.StringFilter<"ClubInvite"> | string
   role?: Prisma.StringFilter<"ClubInvite"> | string
   status?: Prisma.StringFilter<"ClubInvite"> | string
   createdAt?: Prisma.DateTimeFilter<"ClubInvite"> | Date | string
   club?: Prisma.XOR<Prisma.ClubScalarRelationFilter, Prisma.ClubWhereInput>
   inviter?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-  invitee?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-}, "id" | "clubId_inviteeId">
+  invitee?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
+}, "id" | "inviteToken" | "clubId_inviteeEmail">
 
 export type ClubInviteOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   clubId?: Prisma.SortOrder
   inviterId?: Prisma.SortOrder
-  inviteeId?: Prisma.SortOrder
+  inviteeId?: Prisma.SortOrderInput | Prisma.SortOrder
+  inviteeEmail?: Prisma.SortOrder
+  inviteToken?: Prisma.SortOrderInput | Prisma.SortOrder
   role?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -253,7 +275,9 @@ export type ClubInviteScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"ClubInvite"> | string
   clubId?: Prisma.StringWithAggregatesFilter<"ClubInvite"> | string
   inviterId?: Prisma.StringWithAggregatesFilter<"ClubInvite"> | string
-  inviteeId?: Prisma.StringWithAggregatesFilter<"ClubInvite"> | string
+  inviteeId?: Prisma.StringNullableWithAggregatesFilter<"ClubInvite"> | string | null
+  inviteeEmail?: Prisma.StringWithAggregatesFilter<"ClubInvite"> | string
+  inviteToken?: Prisma.StringNullableWithAggregatesFilter<"ClubInvite"> | string | null
   role?: Prisma.StringWithAggregatesFilter<"ClubInvite"> | string
   status?: Prisma.StringWithAggregatesFilter<"ClubInvite"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"ClubInvite"> | Date | string
@@ -261,19 +285,23 @@ export type ClubInviteScalarWhereWithAggregatesInput = {
 
 export type ClubInviteCreateInput = {
   id?: string
+  inviteeEmail: string
+  inviteToken?: string | null
   role?: string
   status?: string
   createdAt?: Date | string
   club: Prisma.ClubCreateNestedOneWithoutInvitationsInput
   inviter: Prisma.UserCreateNestedOneWithoutClubInvitesSentInput
-  invitee: Prisma.UserCreateNestedOneWithoutClubInvitesReceivedInput
+  invitee?: Prisma.UserCreateNestedOneWithoutClubInvitesReceivedInput
 }
 
 export type ClubInviteUncheckedCreateInput = {
   id?: string
   clubId: string
   inviterId: string
-  inviteeId: string
+  inviteeId?: string | null
+  inviteeEmail: string
+  inviteToken?: string | null
   role?: string
   status?: string
   createdAt?: Date | string
@@ -281,19 +309,23 @@ export type ClubInviteUncheckedCreateInput = {
 
 export type ClubInviteUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  inviteeEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  inviteToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   club?: Prisma.ClubUpdateOneRequiredWithoutInvitationsNestedInput
   inviter?: Prisma.UserUpdateOneRequiredWithoutClubInvitesSentNestedInput
-  invitee?: Prisma.UserUpdateOneRequiredWithoutClubInvitesReceivedNestedInput
+  invitee?: Prisma.UserUpdateOneWithoutClubInvitesReceivedNestedInput
 }
 
 export type ClubInviteUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clubId?: Prisma.StringFieldUpdateOperationsInput | string
   inviterId?: Prisma.StringFieldUpdateOperationsInput | string
-  inviteeId?: Prisma.StringFieldUpdateOperationsInput | string
+  inviteeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  inviteeEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  inviteToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -303,7 +335,9 @@ export type ClubInviteCreateManyInput = {
   id?: string
   clubId: string
   inviterId: string
-  inviteeId: string
+  inviteeId?: string | null
+  inviteeEmail: string
+  inviteToken?: string | null
   role?: string
   status?: string
   createdAt?: Date | string
@@ -311,6 +345,8 @@ export type ClubInviteCreateManyInput = {
 
 export type ClubInviteUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  inviteeEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  inviteToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -320,7 +356,9 @@ export type ClubInviteUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clubId?: Prisma.StringFieldUpdateOperationsInput | string
   inviterId?: Prisma.StringFieldUpdateOperationsInput | string
-  inviteeId?: Prisma.StringFieldUpdateOperationsInput | string
+  inviteeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  inviteeEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  inviteToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -336,9 +374,9 @@ export type ClubInviteOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
-export type ClubInviteClubIdInviteeIdCompoundUniqueInput = {
+export type ClubInviteClubIdInviteeEmailCompoundUniqueInput = {
   clubId: string
-  inviteeId: string
+  inviteeEmail: string
 }
 
 export type ClubInviteCountOrderByAggregateInput = {
@@ -346,6 +384,8 @@ export type ClubInviteCountOrderByAggregateInput = {
   clubId?: Prisma.SortOrder
   inviterId?: Prisma.SortOrder
   inviteeId?: Prisma.SortOrder
+  inviteeEmail?: Prisma.SortOrder
+  inviteToken?: Prisma.SortOrder
   role?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -356,6 +396,8 @@ export type ClubInviteMaxOrderByAggregateInput = {
   clubId?: Prisma.SortOrder
   inviterId?: Prisma.SortOrder
   inviteeId?: Prisma.SortOrder
+  inviteeEmail?: Prisma.SortOrder
+  inviteToken?: Prisma.SortOrder
   role?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -366,6 +408,8 @@ export type ClubInviteMinOrderByAggregateInput = {
   clubId?: Prisma.SortOrder
   inviterId?: Prisma.SortOrder
   inviteeId?: Prisma.SortOrder
+  inviteeEmail?: Prisma.SortOrder
+  inviteToken?: Prisma.SortOrder
   role?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -499,17 +543,21 @@ export type ClubInviteUncheckedUpdateManyWithoutClubNestedInput = {
 
 export type ClubInviteCreateWithoutInviterInput = {
   id?: string
+  inviteeEmail: string
+  inviteToken?: string | null
   role?: string
   status?: string
   createdAt?: Date | string
   club: Prisma.ClubCreateNestedOneWithoutInvitationsInput
-  invitee: Prisma.UserCreateNestedOneWithoutClubInvitesReceivedInput
+  invitee?: Prisma.UserCreateNestedOneWithoutClubInvitesReceivedInput
 }
 
 export type ClubInviteUncheckedCreateWithoutInviterInput = {
   id?: string
   clubId: string
-  inviteeId: string
+  inviteeId?: string | null
+  inviteeEmail: string
+  inviteToken?: string | null
   role?: string
   status?: string
   createdAt?: Date | string
@@ -527,6 +575,8 @@ export type ClubInviteCreateManyInviterInputEnvelope = {
 
 export type ClubInviteCreateWithoutInviteeInput = {
   id?: string
+  inviteeEmail: string
+  inviteToken?: string | null
   role?: string
   status?: string
   createdAt?: Date | string
@@ -538,6 +588,8 @@ export type ClubInviteUncheckedCreateWithoutInviteeInput = {
   id?: string
   clubId: string
   inviterId: string
+  inviteeEmail: string
+  inviteToken?: string | null
   role?: string
   status?: string
   createdAt?: Date | string
@@ -576,7 +628,9 @@ export type ClubInviteScalarWhereInput = {
   id?: Prisma.StringFilter<"ClubInvite"> | string
   clubId?: Prisma.StringFilter<"ClubInvite"> | string
   inviterId?: Prisma.StringFilter<"ClubInvite"> | string
-  inviteeId?: Prisma.StringFilter<"ClubInvite"> | string
+  inviteeId?: Prisma.StringNullableFilter<"ClubInvite"> | string | null
+  inviteeEmail?: Prisma.StringFilter<"ClubInvite"> | string
+  inviteToken?: Prisma.StringNullableFilter<"ClubInvite"> | string | null
   role?: Prisma.StringFilter<"ClubInvite"> | string
   status?: Prisma.StringFilter<"ClubInvite"> | string
   createdAt?: Prisma.DateTimeFilter<"ClubInvite"> | Date | string
@@ -600,17 +654,21 @@ export type ClubInviteUpdateManyWithWhereWithoutInviteeInput = {
 
 export type ClubInviteCreateWithoutClubInput = {
   id?: string
+  inviteeEmail: string
+  inviteToken?: string | null
   role?: string
   status?: string
   createdAt?: Date | string
   inviter: Prisma.UserCreateNestedOneWithoutClubInvitesSentInput
-  invitee: Prisma.UserCreateNestedOneWithoutClubInvitesReceivedInput
+  invitee?: Prisma.UserCreateNestedOneWithoutClubInvitesReceivedInput
 }
 
 export type ClubInviteUncheckedCreateWithoutClubInput = {
   id?: string
   inviterId: string
-  inviteeId: string
+  inviteeId?: string | null
+  inviteeEmail: string
+  inviteToken?: string | null
   role?: string
   status?: string
   createdAt?: Date | string
@@ -645,7 +703,9 @@ export type ClubInviteUpdateManyWithWhereWithoutClubInput = {
 export type ClubInviteCreateManyInviterInput = {
   id?: string
   clubId: string
-  inviteeId: string
+  inviteeId?: string | null
+  inviteeEmail: string
+  inviteToken?: string | null
   role?: string
   status?: string
   createdAt?: Date | string
@@ -655,6 +715,8 @@ export type ClubInviteCreateManyInviteeInput = {
   id?: string
   clubId: string
   inviterId: string
+  inviteeEmail: string
+  inviteToken?: string | null
   role?: string
   status?: string
   createdAt?: Date | string
@@ -662,17 +724,21 @@ export type ClubInviteCreateManyInviteeInput = {
 
 export type ClubInviteUpdateWithoutInviterInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  inviteeEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  inviteToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   club?: Prisma.ClubUpdateOneRequiredWithoutInvitationsNestedInput
-  invitee?: Prisma.UserUpdateOneRequiredWithoutClubInvitesReceivedNestedInput
+  invitee?: Prisma.UserUpdateOneWithoutClubInvitesReceivedNestedInput
 }
 
 export type ClubInviteUncheckedUpdateWithoutInviterInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clubId?: Prisma.StringFieldUpdateOperationsInput | string
-  inviteeId?: Prisma.StringFieldUpdateOperationsInput | string
+  inviteeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  inviteeEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  inviteToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -681,7 +747,9 @@ export type ClubInviteUncheckedUpdateWithoutInviterInput = {
 export type ClubInviteUncheckedUpdateManyWithoutInviterInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clubId?: Prisma.StringFieldUpdateOperationsInput | string
-  inviteeId?: Prisma.StringFieldUpdateOperationsInput | string
+  inviteeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  inviteeEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  inviteToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -689,6 +757,8 @@ export type ClubInviteUncheckedUpdateManyWithoutInviterInput = {
 
 export type ClubInviteUpdateWithoutInviteeInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  inviteeEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  inviteToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -700,6 +770,8 @@ export type ClubInviteUncheckedUpdateWithoutInviteeInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clubId?: Prisma.StringFieldUpdateOperationsInput | string
   inviterId?: Prisma.StringFieldUpdateOperationsInput | string
+  inviteeEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  inviteToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -709,6 +781,8 @@ export type ClubInviteUncheckedUpdateManyWithoutInviteeInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clubId?: Prisma.StringFieldUpdateOperationsInput | string
   inviterId?: Prisma.StringFieldUpdateOperationsInput | string
+  inviteeEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  inviteToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -717,7 +791,9 @@ export type ClubInviteUncheckedUpdateManyWithoutInviteeInput = {
 export type ClubInviteCreateManyClubInput = {
   id?: string
   inviterId: string
-  inviteeId: string
+  inviteeId?: string | null
+  inviteeEmail: string
+  inviteToken?: string | null
   role?: string
   status?: string
   createdAt?: Date | string
@@ -725,17 +801,21 @@ export type ClubInviteCreateManyClubInput = {
 
 export type ClubInviteUpdateWithoutClubInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  inviteeEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  inviteToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   inviter?: Prisma.UserUpdateOneRequiredWithoutClubInvitesSentNestedInput
-  invitee?: Prisma.UserUpdateOneRequiredWithoutClubInvitesReceivedNestedInput
+  invitee?: Prisma.UserUpdateOneWithoutClubInvitesReceivedNestedInput
 }
 
 export type ClubInviteUncheckedUpdateWithoutClubInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   inviterId?: Prisma.StringFieldUpdateOperationsInput | string
-  inviteeId?: Prisma.StringFieldUpdateOperationsInput | string
+  inviteeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  inviteeEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  inviteToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -744,7 +824,9 @@ export type ClubInviteUncheckedUpdateWithoutClubInput = {
 export type ClubInviteUncheckedUpdateManyWithoutClubInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   inviterId?: Prisma.StringFieldUpdateOperationsInput | string
-  inviteeId?: Prisma.StringFieldUpdateOperationsInput | string
+  inviteeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  inviteeEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  inviteToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -757,12 +839,14 @@ export type ClubInviteSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   clubId?: boolean
   inviterId?: boolean
   inviteeId?: boolean
+  inviteeEmail?: boolean
+  inviteToken?: boolean
   role?: boolean
   status?: boolean
   createdAt?: boolean
   club?: boolean | Prisma.ClubDefaultArgs<ExtArgs>
   inviter?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  invitee?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  invitee?: boolean | Prisma.ClubInvite$inviteeArgs<ExtArgs>
 }, ExtArgs["result"]["clubInvite"]>
 
 export type ClubInviteSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -770,12 +854,14 @@ export type ClubInviteSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   clubId?: boolean
   inviterId?: boolean
   inviteeId?: boolean
+  inviteeEmail?: boolean
+  inviteToken?: boolean
   role?: boolean
   status?: boolean
   createdAt?: boolean
   club?: boolean | Prisma.ClubDefaultArgs<ExtArgs>
   inviter?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  invitee?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  invitee?: boolean | Prisma.ClubInvite$inviteeArgs<ExtArgs>
 }, ExtArgs["result"]["clubInvite"]>
 
 export type ClubInviteSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -783,12 +869,14 @@ export type ClubInviteSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   clubId?: boolean
   inviterId?: boolean
   inviteeId?: boolean
+  inviteeEmail?: boolean
+  inviteToken?: boolean
   role?: boolean
   status?: boolean
   createdAt?: boolean
   club?: boolean | Prisma.ClubDefaultArgs<ExtArgs>
   inviter?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  invitee?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  invitee?: boolean | Prisma.ClubInvite$inviteeArgs<ExtArgs>
 }, ExtArgs["result"]["clubInvite"]>
 
 export type ClubInviteSelectScalar = {
@@ -796,26 +884,28 @@ export type ClubInviteSelectScalar = {
   clubId?: boolean
   inviterId?: boolean
   inviteeId?: boolean
+  inviteeEmail?: boolean
+  inviteToken?: boolean
   role?: boolean
   status?: boolean
   createdAt?: boolean
 }
 
-export type ClubInviteOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clubId" | "inviterId" | "inviteeId" | "role" | "status" | "createdAt", ExtArgs["result"]["clubInvite"]>
+export type ClubInviteOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clubId" | "inviterId" | "inviteeId" | "inviteeEmail" | "inviteToken" | "role" | "status" | "createdAt", ExtArgs["result"]["clubInvite"]>
 export type ClubInviteInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   club?: boolean | Prisma.ClubDefaultArgs<ExtArgs>
   inviter?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  invitee?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  invitee?: boolean | Prisma.ClubInvite$inviteeArgs<ExtArgs>
 }
 export type ClubInviteIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   club?: boolean | Prisma.ClubDefaultArgs<ExtArgs>
   inviter?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  invitee?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  invitee?: boolean | Prisma.ClubInvite$inviteeArgs<ExtArgs>
 }
 export type ClubInviteIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   club?: boolean | Prisma.ClubDefaultArgs<ExtArgs>
   inviter?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  invitee?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  invitee?: boolean | Prisma.ClubInvite$inviteeArgs<ExtArgs>
 }
 
 export type $ClubInvitePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -823,13 +913,15 @@ export type $ClubInvitePayload<ExtArgs extends runtime.Types.Extensions.Internal
   objects: {
     club: Prisma.$ClubPayload<ExtArgs>
     inviter: Prisma.$UserPayload<ExtArgs>
-    invitee: Prisma.$UserPayload<ExtArgs>
+    invitee: Prisma.$UserPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     clubId: string
     inviterId: string
-    inviteeId: string
+    inviteeId: string | null
+    inviteeEmail: string
+    inviteToken: string | null
     role: string
     status: string
     createdAt: Date
@@ -1229,7 +1321,7 @@ export interface Prisma__ClubInviteClient<T, Null = never, ExtArgs extends runti
   readonly [Symbol.toStringTag]: "PrismaPromise"
   club<T extends Prisma.ClubDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClubDefaultArgs<ExtArgs>>): Prisma.Prisma__ClubClient<runtime.Types.Result.GetResult<Prisma.$ClubPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   inviter<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  invitee<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  invitee<T extends Prisma.ClubInvite$inviteeArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClubInvite$inviteeArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1263,6 +1355,8 @@ export interface ClubInviteFieldRefs {
   readonly clubId: Prisma.FieldRef<"ClubInvite", 'String'>
   readonly inviterId: Prisma.FieldRef<"ClubInvite", 'String'>
   readonly inviteeId: Prisma.FieldRef<"ClubInvite", 'String'>
+  readonly inviteeEmail: Prisma.FieldRef<"ClubInvite", 'String'>
+  readonly inviteToken: Prisma.FieldRef<"ClubInvite", 'String'>
   readonly role: Prisma.FieldRef<"ClubInvite", 'String'>
   readonly status: Prisma.FieldRef<"ClubInvite", 'String'>
   readonly createdAt: Prisma.FieldRef<"ClubInvite", 'DateTime'>
@@ -1659,6 +1753,25 @@ export type ClubInviteDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.In
    * Limit how many ClubInvites to delete.
    */
   limit?: number
+}
+
+/**
+ * ClubInvite.invitee
+ */
+export type ClubInvite$inviteeArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the User
+   */
+  select?: Prisma.UserSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the User
+   */
+  omit?: Prisma.UserOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserInclude<ExtArgs> | null
+  where?: Prisma.UserWhereInput
 }
 
 /**

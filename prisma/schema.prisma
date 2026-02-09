@@ -128,19 +128,21 @@ model Club {
 }
 
 model ClubInvite {
-  id        String   @id @default(cuid())
-  clubId    String
-  inviterId String
-  inviteeId String
-  role      String   @default("member") // "admin" | "member" - applied when accepted
-  status    String   @default("pending") // "pending" | "accepted" | "declined"
-  createdAt DateTime @default(now())
+  id           String   @id @default(cuid())
+  clubId       String
+  inviterId    String
+  inviteeId    String?
+  inviteeEmail String   // normalized lowercase; used for both existing and non-existing users
+  inviteToken  String?  @unique // for secure public invite links
+  role         String   @default("member") // "admin" | "member" - applied when accepted
+  status       String   @default("pending") // "pending" | "accepted" | "declined"
+  createdAt    DateTime @default(now())
 
-  club   Club @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  inviter User @relation("ClubInvitesSent", fields: [inviterId], references: [id], onDelete: Cascade)
-  invitee User @relation("ClubInvitesReceived", fields: [inviteeId], references: [id], onDelete: Cascade)
+  club    Club  @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  inviter User  @relation("ClubInvitesSent", fields: [inviterId], references: [id], onDelete: Cascade)
+  invitee User? @relation("ClubInvitesReceived", fields: [inviteeId], references: [id], onDelete: Cascade)
 
-  @@unique([clubId, inviteeId])
+  @@unique([clubId, inviteeEmail])
 }
 
 model ClubMember {
