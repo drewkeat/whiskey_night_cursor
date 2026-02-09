@@ -86,6 +86,16 @@ export default async function NightDetailPage({
             <span>Host: {night.host.name ?? night.host.email}</span>
             {night.location && <span>Where: {night.location}</span>}
           </div>
+          <div className="mt-2">
+            <a
+              href={`/api/nights/${night.id}/ics`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-sm font-medium text-amber-800 hover:bg-amber-100"
+            >
+              Add to calendar
+            </a>
+          </div>
         </div>
         <EventRespondButton
           nightId={night.id}

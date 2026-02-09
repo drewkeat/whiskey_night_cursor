@@ -7,7 +7,7 @@ export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return null;
 
-  const [clubsCount, nightsCount, libraryCount, pendingInvitesCount] = await Promise.all([
+  const [clubsCount, nightsCount, libraryCount, pendingClubInvites, pendingEventInvites] = await Promise.all([
     prisma.clubMember.count({ where: { userId: session.user.id } }),
     prisma.whiskeyNightAttendee.count({
       where: { userId: session.user.id, status: "accepted" },
@@ -24,7 +24,11 @@ export default async function DashboardPage() {
         ],
       },
     }),
+    prisma.whiskeyNightAttendee.count({
+      where: { userId: session.user.id, status: "invited" },
+    }),
   ]);
+  const pendingInvitesCount = pendingClubInvites + pendingEventInvites;
 
   return (
     <div>
@@ -46,7 +50,7 @@ export default async function DashboardPage() {
           >
             <h2 className="font-medium text-amber-950">Invitations</h2>
             <p className="mt-1 text-2xl font-semibold text-amber-700">{pendingInvitesCount}</p>
-            <p className="mt-1 text-sm text-stone-500">Pending club invites</p>
+            <p className="mt-1 text-sm text-stone-500">Pending invites</p>
           </Link>
         )}
         <Link

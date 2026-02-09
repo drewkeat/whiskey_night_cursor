@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 import twilio from "twilio";
+import { buildIcsCalendar } from "@/lib/ics";
 import { prisma } from "@/lib/prisma";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
@@ -95,46 +96,6 @@ export async function sendSms(to: string, body: string, category: NotificationCa
   }
 }
 
-function formatIcsDate(d: Date): string {
-  return d.toISOString().replace(/[-:]/g, "").slice(0, 15) + "Z";
-}
-
-function escapeIcsText(s: string): string {
-  return s.replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\n/g, "\\n");
-}
-
-function buildIcsCalendar(params: {
-  eventName: string;
-  description: string;
-  startTime: Date;
-  endTime: Date;
-  nightId: string;
-  baseUrl: string;
-  location?: string | null;
-}): string {
-  const { eventName, description, startTime, endTime, nightId, baseUrl, location } = params;
-  const uid = `whiskey-night-${nightId}@whiskeynight`;
-  const link = `${baseUrl}/nights/${nightId}`;
-  const lines = [
-    "BEGIN:VCALENDAR",
-    "VERSION:2.0",
-    "PRODID:-//Whiskey Night//EN",
-    "CALSCALE:GREGORIAN",
-    "BEGIN:VEVENT",
-    `UID:${uid}`,
-    `DTSTAMP:${formatIcsDate(new Date())}`,
-    `DTSTART:${formatIcsDate(startTime)}`,
-    `DTEND:${formatIcsDate(endTime)}`,
-    `SUMMARY:${escapeIcsText(eventName.replace(/\n/g, " "))}`,
-    `DESCRIPTION:${escapeIcsText((description || link).replace(/\n/g, " "))}`,
-    `URL:${link}`,
-    ...(location?.trim() ? [`LOCATION:${escapeIcsText(location.trim())}`] : []),
-    "END:VEVENT",
-    "END:VCALENDAR",
-  ];
-  return lines.join("\r\n");
-}
-
 export async function notifyEventInvite(params: {
   userId: string;
   email: string;
@@ -164,14 +125,24 @@ export async function notifyEventInvite(params: {
     const attachments = [
       { filename: "invite.ics", content: Buffer.from(ics, "utf-8") },
     ];
-    await sendEmail(
+    const html = [
+      `<p>You're invited to <strong>${eventName}</strong> by ${hostName}.</p>`,
+      `<p><strong>When:</strong> ${startTime.toLocaleString()} – ${endTime.toLocaleTimeString()}</p>`,
+      location?.trim() ? `<p><strong>Where:</strong> ${location.trim()}</p>` : "",
+      `<p><a href="${link}" style="display:inline-block;background:#b45309;color:#fff;padding:10px 16px;text-decoration:none;border-radius:6px;font-weight:600;">View event &amp; respond</a></p>`,
+      `<p><strong>Add to your calendar:</strong> Open the <strong>invite.ics</strong> attachment in this email (Google Calendar, Apple Calendar, and Outlook all support it). After you accept the invite, you can also use the "Add to calendar" button on the event page.</p>`,
+    ].filter(Boolean).join("");
+    const result = await sendEmail(
       email,
       `Invitation: ${eventName}`,
-      `<p>You're invited to <strong>${eventName}</strong> by ${hostName}.</p><p>When: ${startTime.toLocaleString()} – ${endTime.toLocaleTimeString()}</p>${location?.trim() ? `<p>Where: ${location.trim()}</p>` : ""}<p><a href="${link}">View event and respond</a></p><p>Add to your calendar using the attached .ics file.</p>`,
+      html,
       "event_invite",
       userId,
       attachments
     );
+    if (result && !result.ok && !result.skipped) {
+      throw new Error(result.error ?? "Send failed");
+    }
   }
   if (phone) {
     await sendSms(phone, text.slice(0, 160), "event_invite", userId);

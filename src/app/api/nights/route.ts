@@ -110,12 +110,17 @@ export async function POST(request: Request) {
     }
   }
 
+  // Event invite emails are sent via Resend (not Google OAuth). Google Calendar is only used to create
+  // the event on the host's calendar; delivery to attendees is our responsibility (RESEND_API_KEY required).
+  const hostEmail = (night.host.email ?? "").trim().toLowerCase();
+  const { notifyEventInvite } = await import("@/lib/notifications");
   for (const att of night.attendees) {
     if (att.userId === night.hostId) continue;
-    const { notifyEventInvite } = await import("@/lib/notifications");
-    notifyEventInvite({
+    const toEmail = (att.user.email ?? "").trim();
+    if (!toEmail || toEmail.toLowerCase() === hostEmail) continue;
+    const params = {
       userId: att.user.id,
-      email: att.user.email ?? "",
+      email: toEmail,
       phone: att.user.phone ?? null,
       eventName,
       hostName,
@@ -124,7 +129,10 @@ export async function POST(request: Request) {
       nightId: night.id,
       baseUrl,
       location: night.location,
-    }).catch((err) => console.error("Notify invite failed:", err));
+    };
+    notifyEventInvite(params).catch((err) => {
+      console.error("Event invite email failed:", { to: toEmail, nightId: night.id, error: err });
+    });
   }
 
   return NextResponse.json(night);
