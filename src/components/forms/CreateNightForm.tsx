@@ -27,6 +27,8 @@ function cellStartMs(day: { date: Date }, hour: number): number {
 const CELL_WIDTH = 52;
 const HOUR_COL_WIDTH = 40;
 
+type SlotWithCount = { start: string; end: string; freeCount: number; totalConnected: number };
+
 function CalendarAlignmentGrid({
   timeMin,
   timeMax,
@@ -38,7 +40,7 @@ function CalendarAlignmentGrid({
 }: {
   timeMin: string;
   timeMax: string;
-  slots: { start: string; end: string }[];
+  slots: SlotWithCount[];
   userEvents: { summary: string; start: string; end: string }[];
   calendarConnected: boolean;
   onSelectSlot?: (slot: { start: string; end: string }) => void;
@@ -64,19 +66,25 @@ function CalendarAlignmentGrid({
   }, [timeMin, timeMax]);
 
   const grid = useMemo(() => {
-    const result: { userBusy: boolean; suggested: boolean }[][] = [];
+    const result: { userBusy: boolean; suggested: boolean; freeCount?: number; totalConnected?: number }[][] = [];
     for (const hour of hourLabels) {
-      const row: { userBusy: boolean; suggested: boolean }[] = [];
+      const row: { userBusy: boolean; suggested: boolean; freeCount?: number; totalConnected?: number }[] = [];
       for (const day of days) {
         const cellStart = new Date(day.date.getFullYear(), day.date.getMonth(), day.date.getDate(), hour, 0, 0).getTime();
         const cellEnd = new Date(day.date.getFullYear(), day.date.getMonth(), day.date.getDate(), hour + 1, 0, 0).getTime();
         const userBusy = userEvents.some(
           (ev) => cellOverlaps(new Date(ev.start).getTime(), new Date(ev.end).getTime(), cellStart, cellEnd)
         );
-        const suggested = slots.some(
-          (s) => cellOverlaps(new Date(s.start).getTime(), new Date(s.end).getTime(), cellStart, cellEnd)
+        const overlappingSlot = slots.find((s) =>
+          cellOverlaps(new Date(s.start).getTime(), new Date(s.end).getTime(), cellStart, cellEnd)
         );
-        row.push({ userBusy, suggested });
+        const suggested = !!overlappingSlot;
+        row.push({
+          userBusy,
+          suggested,
+          freeCount: overlappingSlot?.freeCount,
+          totalConnected: overlappingSlot?.totalConnected,
+        });
       }
       result.push(row);
     }
@@ -257,59 +265,66 @@ function CalendarAlignmentGrid({
             {h === 0 ? "12a" : h < 12 ? `${h}a` : h === 12 ? "12p" : `${h - 12}p`}
           </div>
         ))}
-        {hourLabels.map((h, rowIdx) =>
-          days.map((_, colIdx) => {
-            const cell = grid[rowIdx]?.[colIdx];
-            if (!cell) return null;
-            const { userBusy, suggested } = cell;
-            const dragging = isInDragRange(rowIdx, colIdx);
-            const selected = isInSelectedRange(rowIdx, colIdx);
-            let bg = "bg-white";
-            let title = "Free";
-            if (dragging) {
-              bg = "bg-amber-500/30 ring-1 ring-amber-500/50";
-              title = "Selecting…";
-            } else if (selected) {
-              bg = "bg-amber-400/40 ring-1 ring-amber-500/60";
-              title = "Selected time";
-            } else if (userBusy && suggested) {
-              bg = "bg-amber-200/80";
-              title = "Suggested time · you have an event";
-            } else if (userBusy) {
-              bg = "bg-stone-200";
-              title = "Your event";
-            } else if (suggested) {
-              bg = "bg-amber-100";
-              title = "Suggested time";
-            }
-            return (
-              <div
-                key={`${rowIdx}-${colIdx}`}
-                data-row={rowIdx}
-                data-col={colIdx}
-                role="button"
-                tabIndex={0}
-                className={`cursor-pointer border-b border-r border-stone-100 last:border-r-0 ${bg} ${onSelectSlot ? "hover:opacity-90" : ""}`}
-                style={{
-                  gridColumn: colIdx + 2,
-                  gridRow: rowIdx + 2,
-                  minHeight: 24,
-                  width: CELL_WIDTH,
-                  minWidth: CELL_WIDTH,
-                }}
-                title={title}
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  handleMouseDown(rowIdx, colIdx);
-                }}
-              />
-            );
-          })
-        )}
+            {hourLabels.map((h, rowIdx) =>
+              days.map((_, colIdx) => {
+                const cell = grid[rowIdx]?.[colIdx];
+                if (!cell) return null;
+                const { userBusy, suggested, freeCount, totalConnected } = cell;
+                const dragging = isInDragRange(rowIdx, colIdx);
+                const selected = isInSelectedRange(rowIdx, colIdx);
+                let bg = "bg-white";
+                let title = "Free";
+                if (dragging) {
+                  bg = "bg-amber-500/30 ring-1 ring-amber-500/50";
+                  title = "Selecting…";
+                } else if (selected) {
+                  bg = "bg-amber-400/40 ring-1 ring-amber-500/60";
+                  title = "Selected time";
+                } else if (userBusy && suggested) {
+                  bg = "bg-amber-200/80";
+                  title = "Suggested time · you have an event";
+                } else if (userBusy) {
+                  bg = "bg-stone-200";
+                  title = "Your event";
+                } else if (suggested) {
+                  bg = "bg-amber-100";
+                  title = "Suggested time";
+                }
+                const showCount = (suggested || selected) && freeCount != null && totalConnected != null;
+                return (
+                  <div
+                    key={`${rowIdx}-${colIdx}`}
+                    data-row={rowIdx}
+                    data-col={colIdx}
+                    role="button"
+                    tabIndex={0}
+                    className={`flex cursor-pointer flex-col items-center justify-center border-b border-r border-stone-100 last:border-r-0 ${bg} ${onSelectSlot ? "hover:opacity-90" : ""}`}
+                    style={{
+                      gridColumn: colIdx + 2,
+                      gridRow: rowIdx + 2,
+                      minHeight: 24,
+                      width: CELL_WIDTH,
+                      minWidth: CELL_WIDTH,
+                    }}
+                    title={title + (showCount ? ` (${freeCount}/${totalConnected} free)` : "")}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      handleMouseDown(rowIdx, colIdx);
+                    }}
+                  >
+                    {showCount && (
+                      <span className="text-[10px] font-medium leading-none text-amber-900/90">
+                        {freeCount}/{totalConnected}
+                      </span>
+                    )}
+                  </div>
+                );
+              })
+            )}
       </div>
       {onSelectSlot && (
         <p className="border-t border-stone-200 bg-amber-50/50 px-3 py-1.5 text-xs text-stone-600">
-          Click a time to select it (or a 2-hour block). Drag across cells to pick a range. Suggested slots are highlighted.
+          Click or drag to select. Numbers in cells are members free (e.g. 3/5).
         </p>
       )}
       <div className="flex flex-wrap gap-4 border-t border-stone-200 bg-stone-50/50 px-3 py-2 text-xs text-stone-600">
@@ -668,20 +683,19 @@ export function CreateNightForm({
         )}
         {calendarGrid && (
           <div className="mt-4">
-            <p className="mb-2 text-xs font-medium text-stone-600">Your calendar vs suggested times</p>
-            {calendarGrid}
-          </div>
-        )}
-        {availabilitySlots.length > 0 && (
-          <ul className="mt-3 space-y-1">
-            {availabilitySlots.map((slot) => (
-              <li key={slot.start}>
-                <button
-                  type="button"
-                  onClick={() => applySlot(slot)}
-                  className="w-full rounded border border-stone-200 bg-white px-3 py-2 text-left text-sm hover:bg-stone-50"
-                >
-                  {new Date(slot.start).toLocaleString(undefined, {
+            {startDate && startTime && endDate && endTime && (() => {
+              const start = new Date(`${startDate}T${startTime}`);
+              const end = new Date(`${endDate}T${endTime}`);
+              if (isNaN(start.getTime()) || isNaN(end.getTime()) || end <= start) return null;
+              const overlap = availabilitySlots.find((slot) => {
+                const sStart = new Date(slot.start).getTime();
+                const sEnd = new Date(slot.end).getTime();
+                return cellOverlaps(start.getTime(), end.getTime(), sStart, sEnd);
+              });
+              return (
+                <div className="mb-3 rounded-lg border border-amber-200/60 bg-amber-50/50 px-3 py-2 text-sm text-stone-800">
+                  <span className="font-medium text-amber-900">Current selection:</span>{" "}
+                  {start.toLocaleString(undefined, {
                     weekday: "short",
                     month: "short",
                     day: "numeric",
@@ -689,53 +703,56 @@ export function CreateNightForm({
                     minute: "2-digit",
                   })}{" "}
                   –{" "}
-                  {new Date(slot.end).toLocaleTimeString(undefined, {
-                    hour: "numeric",
-                    minute: "2-digit",
-                  })}{" "}
-                  ({slot.freeCount}/{slot.totalConnected} free)
-                </button>
-              </li>
-            ))}
-          </ul>
+                  {end.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}
+                  {overlap != null && (
+                    <span className="ml-1.5 text-amber-800">
+                      · {overlap.freeCount}/{overlap.totalConnected} members free
+                    </span>
+                  )}
+                </div>
+              );
+            })()}
+            <p className="mb-2 text-xs font-medium text-stone-600">Your calendar vs suggested times (click or drag to select)</p>
+            {calendarGrid}
+          </div>
         )}
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
-        <div>
+        <div className="min-w-0">
           <label className="mb-1 block text-sm font-medium text-stone-700">Start</label>
-          <div className="flex gap-2">
+          <div className="flex min-w-0 gap-2">
             <input
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
               min={today}
               required
-              className="flex-1 rounded-lg border border-stone-300 px-3 py-2 text-stone-900 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+              className="min-w-0 flex-1 rounded-lg border border-stone-300 px-3 py-2 text-stone-900 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
             />
             <input
               type="time"
               value={startTime}
               onChange={(e) => setStartTime(e.target.value)}
-              className="w-28 rounded-lg border border-stone-300 px-3 py-2 text-stone-900 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+              className="shrink-0 w-28 rounded-lg border border-stone-300 px-3 py-2 text-stone-900 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
             />
           </div>
         </div>
-        <div>
+        <div className="min-w-0">
           <label className="mb-1 block text-sm font-medium text-stone-700">End</label>
-          <div className="flex gap-2">
+          <div className="flex min-w-0 gap-2">
             <input
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
               min={startDate || today}
               required
-              className="flex-1 rounded-lg border border-stone-300 px-3 py-2 text-stone-900 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+              className="min-w-0 flex-1 rounded-lg border border-stone-300 px-3 py-2 text-stone-900 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
             />
             <input
               type="time"
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
-              className="w-28 rounded-lg border border-stone-300 px-3 py-2 text-stone-900 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+              className="shrink-0 w-28 rounded-lg border border-stone-300 px-3 py-2 text-stone-900 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
             />
           </div>
         </div>
