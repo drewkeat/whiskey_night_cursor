@@ -1,7 +1,10 @@
+import "dotenv/config";
 import { PrismaClient } from "./generated/prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
 import bcrypt from "bcryptjs";
 
-const prisma = new PrismaClient();
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
+const prisma = new PrismaClient({ adapter });
 
 const TEST_PASSWORD = "password123";
 
@@ -48,14 +51,18 @@ async function main() {
         name: "Weekend Whiskey Club",
         description: "Tastings every other Saturday",
         createdById: alice.id,
-        members: {
-          create: [
-            { userId: alice.id, role: "admin" },
-            { userId: bob.id, role: "member" },
-            { userId: carol.id, role: "member" },
-          ],
-        },
       },
+      include: { members: true },
+    });
+    await prisma.clubMember.createMany({
+      data: [
+        { clubId: club.id, userId: alice.id, role: "admin" },
+        { clubId: club.id, userId: bob.id, role: "member" },
+        { clubId: club.id, userId: carol.id, role: "member" },
+      ],
+    });
+    club = await prisma.club.findFirstOrThrow({
+      where: { id: club.id },
       include: { members: true },
     });
   }

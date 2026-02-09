@@ -32,16 +32,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
   const { name, description } = parsed.data;
+  const userId = session.user.id;
+  // Two-step create: club first, then member (avoids nested-create FK issues with Prisma pg adapter)
   const club = await prisma.club.create({
     data: {
       name,
       description: description ?? null,
-      createdById: session.user.id,
-      members: {
-        create: { userId: session.user.id, role: "admin" },
-      },
+      createdById: userId,
     },
     include: { _count: { select: { members: true, nights: true } } },
+  });
+  await prisma.clubMember.create({
+    data: { clubId: club.id, userId, role: "admin" },
   });
   return NextResponse.json(club);
 }

@@ -1,0 +1,3 @@
+{"location":"src/app/api/clubs/route.ts:POST","message":"session after getServerSession","data":{"hasSession":true,"hasUser":true,"userId":"cmlepuuh10005asor1iu41t5c","userIdType":"string"},"timestamp":1770614225822,"hypothesisId":"H1"}
+{"location":"src/app/api/clubs/route.ts:POST","message":"before club.create","data":{"createdById":"cmlepuuh10005asor1iu41t5c","userExists":true},"timestamp":1770614225844,"hypothesisId":"H2"}
+{"location":"src/app/api/clubs/route.ts:POST","message":"post-fix","data":{"clubId":"cmlepzsfs000basorzmw9h49a","created":true},"timestamp":1770614225862,"runId":"post-fix"}
