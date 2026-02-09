@@ -35,7 +35,13 @@ export async function POST(
     invite.inviteeId === session.user.id ||
     (sessionEmail && inviteeEmail === sessionEmail);
   if (!isAuthorized) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json(
+      {
+        error:
+          "This invitation was sent to a different email address. Sign out and sign in with the email that received the invitation.",
+      },
+      { status: 403 }
+    );
   }
   if (invite.status !== "pending") {
     return NextResponse.json({ error: "Invitation already responded to" }, { status: 400 });

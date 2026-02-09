@@ -33,6 +33,13 @@ export async function POST(request: Request) {
   }
   const { name, description } = parsed.data;
   const userId = session.user.id;
+  const userExists = await prisma.user.findUnique({ where: { id: userId }, select: { id: true } });
+  if (!userExists) {
+    return NextResponse.json(
+      { error: "User not found. You may need to sign out and sign in again (e.g. after a database reset)." },
+      { status: 401 }
+    );
+  }
   // Two-step create: club first, then member (avoids nested-create FK issues with Prisma pg adapter)
   const club = await prisma.club.create({
     data: {
