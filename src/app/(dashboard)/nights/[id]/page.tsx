@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { EventRespondButton } from "@/components/nights/EventRespondButton";
 import { SetWhiskeySection } from "@/components/nights/SetWhiskeySection";
+import { DeleteNightButton } from "@/components/nights/DeleteNightButton";
 import { ReviewFormSection } from "@/components/reviews/ReviewFormSection";
 
 export default async function NightDetailPage({
@@ -86,7 +87,7 @@ export default async function NightDetailPage({
             <span>Host: {night.host.name ?? night.host.email}</span>
             {night.location && <span>Where: {night.location}</span>}
           </div>
-          <div className="mt-2">
+          <div className="mt-2 flex flex-wrap items-center gap-2">
             <a
               href={`/api/nights/${night.id}/ics`}
               target="_blank"
@@ -95,6 +96,20 @@ export default async function NightDetailPage({
             >
               Add to calendar
             </a>
+            {isHost && (
+              <>
+                <Link
+                  href={`/nights/${night.id}/edit`}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-sm font-medium text-amber-800 hover:bg-amber-100"
+                >
+                  Edit event
+                </Link>
+                <DeleteNightButton
+                  nightId={night.id}
+                  redirectTo={`/clubs/${night.club.id}`}
+                />
+              </>
+            )}
           </div>
         </div>
         <EventRespondButton
