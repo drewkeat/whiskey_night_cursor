@@ -17,6 +17,7 @@
     "db:down": "docker compose down",
     "db:migrate": "npx prisma migrate deploy",
     "db:seed": "npx prisma db seed",
+    "db:export-whiskeys": "npx tsx scripts/export-whiskeys.ts",
     "db:reset": "docker compose up -d --wait && npx prisma migrate reset --force",
     "db:reset-full": "docker compose down -v && docker compose up -d --wait && npx prisma migrate deploy && npx prisma db seed"
   },
