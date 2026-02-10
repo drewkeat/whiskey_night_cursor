@@ -201,4 +201,68 @@ export async function createCalendarEvent(
   return event.data.id ?? null;
 }
 
+/**
+ * Update an existing calendar event on the host's primary calendar.
+ */
+export async function updateCalendarEvent(
+  connection: CalendarConnectionWithTokens,
+  eventId: string,
+  params: {
+    summary: string;
+    description?: string;
+    location?: string;
+    start: string;
+    end: string;
+    attendeeEmails: string[];
+  }
+): Promise<void> {
+  const token = await getValidAccessToken(connection);
+  if (!token) return;
+
+  const oauth2Client = new google.auth.OAuth2(
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET,
+    undefined
+  );
+  oauth2Client.setCredentials({ access_token: token });
+  const calendar = google.calendar({ version: "v3", auth: oauth2Client });
+
+  await calendar.events.patch({
+    calendarId: "primary",
+    eventId,
+    requestBody: {
+      summary: params.summary,
+      description: params.description ?? undefined,
+      location: params.location ?? undefined,
+      start: { dateTime: params.start, timeZone: "UTC" },
+      end: { dateTime: params.end, timeZone: "UTC" },
+      attendees: params.attendeeEmails.filter(Boolean).map((email) => ({ email })),
+    },
+  });
+}
+
+/**
+ * Delete a calendar event from the host's primary calendar.
+ */
+export async function deleteCalendarEvent(
+  connection: CalendarConnectionWithTokens,
+  eventId: string
+): Promise<void> {
+  const token = await getValidAccessToken(connection);
+  if (!token) return;
+
+  const oauth2Client = new google.auth.OAuth2(
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET,
+    undefined
+  );
+  oauth2Client.setCredentials({ access_token: token });
+  const calendar = google.calendar({ version: "v3", auth: oauth2Client });
+
+  await calendar.events.delete({
+    calendarId: "primary",
+    eventId,
+  });
+}
+
 export { CALENDAR_SCOPE };

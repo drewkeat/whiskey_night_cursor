@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { EventRespondButton } from "@/components/nights/EventRespondButton";
 import { SetWhiskeySection } from "@/components/nights/SetWhiskeySection";
 import { ReviewFormSection } from "@/components/reviews/ReviewFormSection";
+import { NightHostActions } from "@/components/nights/NightHostActions";
 
 export default async function NightDetailPage({
   params,
@@ -73,9 +74,12 @@ export default async function NightDetailPage({
     <div>
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-amber-950">
-            {title}
-          </h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-semibold text-amber-950">
+              {title}
+            </h1>
+            {isHost && <NightHostActions nightId={night.id} clubId={night.club.id} />}
+          </div>
           <p className="mt-1 text-stone-600">
             <Link href={`/clubs/${night.club.id}`} className="text-amber-700 hover:underline">
               {night.club.name}
@@ -106,17 +110,32 @@ export default async function NightDetailPage({
       <section className="mt-6 rounded-xl border border-amber-200/60 bg-white p-4">
         <h2 className="font-medium text-amber-950">Whiskey</h2>
         {night.whiskey ? (
-          <Link
-            href={`/whiskeys/${night.whiskey.id}`}
-            className="mt-1 block text-amber-700 hover:underline"
-          >
-            {night.whiskey.name}
-            {night.whiskey.distillery && ` · ${night.whiskey.distillery}`}
-          </Link>
+          <>
+            <Link
+              href={`/whiskeys/${night.whiskey.id}`}
+              className="mt-1 block text-amber-700 hover:underline"
+            >
+              {night.whiskey.name}
+              {night.whiskey.distillery && ` · ${night.whiskey.distillery}`}
+            </Link>
+            {isHost && (
+              <SetWhiskeySection
+                nightId={night.id}
+                whiskeys={whiskeys}
+                currentWhiskeyId={night.whiskeyId}
+              />
+            )}
+          </>
         ) : (
           <>
-            <p className="mt-1 text-stone-500">TBD</p>
-            {isHost && <SetWhiskeySection nightId={night.id} whiskeys={whiskeys} />}
+            <p className="mt-1 text-stone-500">TBD — whiskey can be set anytime before or during the event.</p>
+            {isHost && (
+              <SetWhiskeySection
+                nightId={night.id}
+                whiskeys={whiskeys}
+                currentWhiskeyId={null}
+              />
+            )}
           </>
         )}
       </section>

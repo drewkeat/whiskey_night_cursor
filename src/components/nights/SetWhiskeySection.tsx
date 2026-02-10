@@ -7,29 +7,31 @@ import type { Whiskey } from "@prisma/client";
 export function SetWhiskeySection({
   nightId,
   whiskeys,
+  currentWhiskeyId,
 }: {
   nightId: string;
   whiskeys: Whiskey[];
+  /** Current whiskey on the night (if any). Lets the host change or clear it. */
+  currentWhiskeyId?: string | null;
 }) {
   const router = useRouter();
-  const [whiskeyId, setWhiskeyId] = useState(whiskeys[0]?.id ?? "");
+  const [whiskeyId, setWhiskeyId] = useState(currentWhiskeyId ?? "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!whiskeyId) return;
     setError("");
     setLoading(true);
     try {
       const res = await fetch(`/api/nights/${nightId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ whiskeyId }),
+        body: JSON.stringify({ whiskeyId: whiskeyId || null }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        setError(data.error ?? "Failed to set whiskey");
+        setError(data.error ?? "Failed to update whiskey");
         return;
       }
       router.refresh();
@@ -42,6 +44,7 @@ export function SetWhiskeySection({
     return (
       <p className="mt-1 text-sm text-stone-500">
         No whiskeys in the catalog yet. Add one from the <a href="/whiskeys" className="text-amber-700 underline">Whiskeys</a> page.
+        Whiskey can stay TBD until someone sets it for this event.
       </p>
     );
   }
@@ -53,6 +56,7 @@ export function SetWhiskeySection({
         onChange={(e) => setWhiskeyId(e.target.value)}
         className="rounded-lg border border-stone-300 px-3 py-2 text-stone-900 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
       >
+        <option value="">TBD — set later</option>
         {whiskeys.map((w) => (
           <option key={w.id} value={w.id}>
             {w.name} {w.distillery ? `(${w.distillery})` : ""}
@@ -64,7 +68,7 @@ export function SetWhiskeySection({
         disabled={loading}
         className="rounded-lg bg-amber-700 px-3 py-2 text-sm font-medium text-white hover:bg-amber-800 disabled:opacity-50"
       >
-        {loading ? "Saving…" : "Set whiskey"}
+        {loading ? "Saving…" : "Update whiskey"}
       </button>
       {error && <p className="w-full text-sm text-red-600">{error}</p>}
     </form>
